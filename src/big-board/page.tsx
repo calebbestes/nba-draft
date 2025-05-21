@@ -1,4 +1,4 @@
-import { Card, CardContent, Avatar, Typography, Box, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { Card, CardContent, Typography, Box, MenuItem, Select, InputLabel, FormControl, Avatar } from "@mui/material";
 import { bio } from "../data/bio";
 import { scoutRankings } from "../data/scoutRankings";
 import { Link } from "react-router-dom";
@@ -12,6 +12,8 @@ const rankingSources = [
   "Kyle Boone Rank",
   "Gary Parrish Rank",
 ];
+
+
 
 function getRank(playerId: number, source: string): number {
   const ranking = scoutRankings.find((r) => r.playerId === playerId);
@@ -28,6 +30,27 @@ function getRank(playerId: number, source: string): number {
     ? (ranking as Record<string, number | null>)[source]!
     : Infinity;
 }
+
+function getMinMaxRank(playerId: number): [number, string, number, string] {
+  const ranking = scoutRankings.find((r) => r.playerId === playerId);
+  if (!ranking) return [Infinity, "", Infinity, ""];
+
+  const entries = Object.entries(ranking)
+    .filter(([key, val]) => key !== "playerId" && typeof val === "number") as [string, number][];
+
+  if (!entries.length) return [Infinity, "", Infinity, ""];
+
+  let minEntry = entries[0];
+  let maxEntry = entries[0];
+
+  for (const entry of entries) {
+    if (entry[1] < minEntry[1]) minEntry = entry;
+    if (entry[1] > maxEntry[1]) maxEntry = entry;
+  }
+
+  return [minEntry[1], minEntry[0], maxEntry[1], maxEntry[0]];
+}
+
 
 export default function BigBoard() {
   const [sortKey, setSortKey] = useState("ESPN Rank");
@@ -63,21 +86,21 @@ export default function BigBoard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {sortedPlayers.map((player) => {
           const rank = getRank(player.playerId, sortKey);
+          const [minRank, minSource, maxRank, maxSource] = getMinMaxRank(player.playerId);
+
 
           return (
             <div key={player.playerId} className="w-full">
               <Link to={`/player/${player.playerId}`} className="no-underline">
                 <Card className="transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl h-full rounded-3xl border border-gray-200 bg-white/80 backdrop-blur-md">
                   <CardContent className="flex flex-col items-center text-center p-6">
-                    <Box className="flex items-center mb-4 space-x-4">
+                    <Box className="flex items-center justify-between w-full mb-4">
+                    <Box className="flex items-center space-x-4">
                       {typeof rank === "number" && isFinite(rank) && (
-                        <Box
-                          className="flex items-center justify-center w-20 h-20 rounded-lg bg-blue-600 text-white font-extrabold text-3xl"
-                        >
+                        <Box className="flex items-center justify-center w-20 h-20 rounded-lg bg-blue-600 text-white font-extrabold text-3xl">
                           #{Math.round(rank)}
                         </Box>
                       )}
-
                       <Avatar
                         src={player.photoUrl || undefined}
                         alt={player.name}
@@ -86,9 +109,19 @@ export default function BigBoard() {
                         {player.firstName[0]}
                       </Avatar>
                     </Box>
-
-
-
+                  <Box className="flex flex-col items-end text-xs">
+                    {isFinite(minRank) && (
+                      <span className="text-[0.75rem] font-semibold text-red-600">
+                        {minSource}: #{minRank}
+                      </span>
+                    )}
+                    {isFinite(maxRank) && (
+                      <span className="text-[0.75rem] font-semibold text-green-600">
+                        {maxSource}: #{maxRank}
+                      </span>
+                    )}
+                  </Box>
+                  </Box>
                     <Typography variant="h6" className="font-semibold text-gray-900">
                       {player.name}
                     </Typography>
@@ -99,6 +132,7 @@ export default function BigBoard() {
                       {player.homeTown}, {player.homeCountry}
                     </Typography>
                   </CardContent>
+
                 </Card>
               </Link>
             </div>

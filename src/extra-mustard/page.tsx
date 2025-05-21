@@ -10,3 +10,5 @@
 
 // riskiest players (large standard deviation)
 
+// add flags
+
