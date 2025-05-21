@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 
 const rankingSources = [
+  "Average Rank",
   "ESPN Rank",
-  "Average",
   "Sam Vecenie Rank",
   "Kevin O'Connor Rank",
   "Kyle Boone Rank",
@@ -19,7 +19,7 @@ function getRank(playerId: number, source: string): number {
   const ranking = scoutRankings.find((r) => r.playerId === playerId);
   if (!ranking) return Infinity;
 
-  if (source === "Average") {
+  if (source === "Average Rank") {
     const values = Object.entries(ranking)
       .filter(([key, val]) => key !== "playerId" && typeof val === "number")
       .map(([, val]) => val as number);
@@ -53,7 +53,7 @@ function getMinMaxRank(playerId: number): [number, string, number, string] {
 
 
 export default function BigBoard() {
-  const [sortKey, setSortKey] = useState("ESPN Rank");
+  const [sortKey, setSortKey] = useState("Average Rank");
 
   const sortedPlayers = [...bio].sort(
     (a, b) => getRank(a.playerId, sortKey) - getRank(b.playerId, sortKey)
@@ -111,12 +111,12 @@ export default function BigBoard() {
                     </Box>
                   <Box className="flex flex-col items-end text-xs">
                     {isFinite(minRank) && (
-                      <span className="text-[0.75rem] font-semibold text-red-600">
+                      <span className="text-[0.75rem] font-semibold text-green-600">
                         {minSource}: #{minRank}
                       </span>
                     )}
                     {isFinite(maxRank) && (
-                      <span className="text-[0.75rem] font-semibold text-green-600">
+                      <span className="text-[0.75rem] font-semibold text-red-600">
                         {maxSource}: #{maxRank}
                       </span>
                     )}
