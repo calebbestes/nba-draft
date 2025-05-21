@@ -1,4 +1,4 @@
-import { Card, CardContent, Avatar, Typography, Box, Chip, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { Card, CardContent, Avatar, Typography, Box, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { bio } from "../data/bio";
 import { scoutRankings } from "../data/scoutRankings";
 import { Link } from "react-router-dom";
@@ -69,7 +69,15 @@ export default function BigBoard() {
               <Link to={`/player/${player.playerId}`} className="no-underline">
                 <Card className="transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl h-full rounded-3xl border border-gray-200 bg-white/80 backdrop-blur-md">
                   <CardContent className="flex flex-col items-center text-center p-6">
-                    <Box className="relative mb-4">
+                    <Box className="flex items-center mb-4 space-x-4">
+                      {typeof rank === "number" && isFinite(rank) && (
+                        <Box
+                          className="flex items-center justify-center w-20 h-20 rounded-lg bg-blue-600 text-white font-extrabold text-3xl"
+                        >
+                          #{Math.round(rank)}
+                        </Box>
+                      )}
+
                       <Avatar
                         src={player.photoUrl || undefined}
                         alt={player.name}
@@ -77,15 +85,9 @@ export default function BigBoard() {
                       >
                         {player.firstName[0]}
                       </Avatar>
-                      {typeof rank === "number" && isFinite(rank) && (
-                        <Chip
-                          label={`#${Math.round(rank)}`}
-                          size="small"
-                          color="primary"
-                          sx={{ position: 'absolute', top: -10, right: -10, fontWeight: 'bold' }}
-                        />
-                      )}
                     </Box>
+
+
 
                     <Typography variant="h6" className="font-semibold text-gray-900">
                       {player.name}
