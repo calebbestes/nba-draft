@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { bio } from "../data/bio";
 import { game_logs } from "../data/game-logs";
 import { seasonLogs } from "../data/season-logs";
@@ -15,6 +15,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import { generatePlayerSubtitle } from "../utils/generate-subtitle";
 import PlayerGameLogTable from "./game-log-chart";
 
 export default function PlayerProfile() {
@@ -22,13 +23,34 @@ export default function PlayerProfile() {
   const player = bio.find((p) => p.name === decodeURIComponent(name || ""));
 
   const [view, setView] = useState<"season" | "game">("season");
+  const [subtitle, setSubtitle] = useState<string | null>(null);
+  const [loadingSubtitle, setLoadingSubtitle] = useState(false);
 
-  if (!player) return <div>Player not found</div>;
+  const seasonStats = player
+    ? seasonLogs.find((s) => s.playerId === player.playerId)
+    : null;
 
-  const seasonStats = seasonLogs.find((s) => s.playerId === player.playerId);
-  const playerGameLogs = game_logs.filter(
-    (g) => g.playerId === player.playerId
-  );
+  const playerGameLogs = player
+    ? game_logs.filter((g) => g.playerId === player.playerId)
+    : [];
+  useEffect(() => {
+    const getSubtitle = async () => {
+      if (!player) return;
+
+      setLoadingSubtitle(true);
+      try {
+        const generated = await generatePlayerSubtitle(player.name);
+        setSubtitle(generated);
+      } catch (error) {
+        console.error("Subtitle generation failed:", error);
+        setSubtitle("Versatile Prospect");
+      } finally {
+        setLoadingSubtitle(false);
+      }
+    };
+
+    getSubtitle();
+  }, [player]);
 
   const handleViewChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -65,7 +87,7 @@ export default function PlayerProfile() {
     <Box p={4}>
       <Box
         sx={{
-          backgroundColor: "#121212", // sleek dark background
+          backgroundColor: "#121212",
           borderRadius: 2,
           padding: 3,
           mb: 3,
@@ -75,9 +97,15 @@ export default function PlayerProfile() {
           boxShadow: 3,
         }}
       >
-        <Typography variant="h4" color="white">
-          {player.name}
-        </Typography>
+        <Box>
+          <Typography variant="h4" color="white">
+            {player.name}
+          </Typography>
+          <Typography variant="subtitle1" color="gray">
+            {loadingSubtitle ? "Generating subtitle..." : subtitle}
+          </Typography>
+        </Box>
+
         {player.photoUrl && (
           <Box
             component="img"
