@@ -146,120 +146,109 @@ export default function BigBoard() {
   const navigate = useNavigate();
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <Typography variant="h4" className="font-extrabold text-gray-800">
-          🏀 NBA Draft Big Board
-        </Typography>
+    <div className="p-6 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <Typography variant="h4" className="font-black text-gray-800 tracking-tight">
+            2025 NBA Draft Big Board
+          </Typography>
 
-        <FormControl className="mt-4 sm:mt-0 w-64">
-          <InputLabel id="sort-select-label">Sort by</InputLabel>
-          <Select
-            labelId="sort-select-label"
-            value={sortKey}
-            label="Sort by"
-            onChange={(e) => setSortKey(e.target.value)}
-            className="rounded-lg shadow-sm bg-white"
-          >
-            {rankingSources.map((source) => (
-              <MenuItem key={source} value={source}>
-                {source}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </div>
+          <FormControl className="mt-4 sm:mt-0 w-64">
+            <InputLabel id="sort-select-label">Sort by</InputLabel>
+            <Select
+              labelId="sort-select-label"
+              value={sortKey}
+              label="Sort by"
+              onChange={(e) => setSortKey(e.target.value)}
+              className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm"
+            >
+              {rankingSources.map((source) => (
+                <MenuItem key={source} value={source}>
+                  {source}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sortedPlayers.map((player: Player) => {
-          const rank = getRank(player.playerId, sortKey, avgRankMap);
-          const [minRank, minSource, maxRank, maxSource] = getMinMaxRank(
-            player.playerId
-          );
-          const outlierType = getOutlierType(player.playerId, sortKey);
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {sortedPlayers.map((player: Player) => {
+            const rank = getRank(player.playerId, sortKey, avgRankMap);
+            const [minRank, minSource, maxRank, maxSource] = getMinMaxRank(
+              player.playerId
+            );
+            const outlierType = getOutlierType(player.playerId, sortKey);
 
-          return (
-            <div key={player.playerId} className="w-full">
-              <Card
-                key={player.playerId}
-                onClick={() =>
-                  navigate(`/player/${encodeURIComponent(player.name)}`)
-                }
-                className="transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-2xl h-full rounded-3xl border border-gray-200 bg-white/80 backdrop-blur-md"
-              >
-                <CardContent className="flex flex-col items-center text-center p-6">
-                  <Box className="flex items-center justify-between w-full mb-4">
-                    <Box className="flex items-center space-x-4">
+            return (
+              <div key={player.playerId}>
+                <Card
+                  onClick={() =>
+                    navigate(`/player/${encodeURIComponent(player.name)}`)
+                  }
+                  className="player-card rounded-2xl cursor-pointer"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
                       {typeof rank === "number" && isFinite(rank) && (
-                        <Box className="flex items-center justify-center w-20 h-20 rounded-lg bg-blue-600 text-white font-extrabold text-3xl">
-                          #{Math.round(rank)}
-                        </Box>
+                        <div className="rank-badge">#{Math.round(rank)}</div>
                       )}
-                    </Box>
-                    <Avatar
-                      src={player.photoUrl || undefined}
-                      alt={player.name}
-                      sx={{ width: 80, height: 80 }}
-                    >
-                      {player.firstName[0]}
-                    </Avatar>
-                    <Box className="flex flex-col items-end text-xs">
-                      {sortKey === "Average Rank" ? (
-                        <>
-                          {isFinite(minRank) && (
-                            <span className="text-[0.75rem] font-semibold text-green-600">
-                              Highest Rank: {minRank} (
-                              {minSource.replace(" Rank", "")})
-                            </span>
-                          )}
-                          {isFinite(maxRank) && (
-                            <span className="text-[0.75rem] font-semibold text-red-600">
-                              Lowest Rank: {maxRank} (
-                              {maxSource.replace(" Rank", "")})
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {outlierType === "high" && (
-                            <Tooltip title="This scout is significantly higher on this player">
-                              <span className="text-yellow-500 text-lg font-bold cursor-help">
-                                🔥
+                      <Avatar
+                        src={player.photoUrl || undefined}
+                        alt={player.name}
+                        sx={{ width: 64, height: 64 }}
+                        className="border-2 border-white shadow-md"
+                      />
+                      <div className="flex flex-col items-end space-y-1">
+                        {sortKey === "Average Rank" ? (
+                          <>
+                            {isFinite(minRank) && (
+                              <span className="stat-badge stat-badge-high">
+                                High: {minRank} ({minSource.replace(" Rank", "")})
                               </span>
-                            </Tooltip>
-                          )}
-                          {outlierType === "low" && (
-                            <Tooltip title="This scout is significantly lower on this player">
-                              <span className="text-blue-500 text-lg font-bold cursor-help">
-                                ❄️
+                            )}
+                            {isFinite(maxRank) && (
+                              <span className="stat-badge stat-badge-low">
+                                Low: {maxRank} ({maxSource.replace(" Rank", "")})
                               </span>
-                            </Tooltip>
-                          )}
-                        </>
-                      )}
-                    </Box>
-                  </Box>
-                  <Typography
-                    variant="h6"
-                    className="font-semibold text-gray-900"
-                  >
-                    {player.name}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    className="italic"
-                  >
-                    {player.currentTeam} — {player.league}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {player.homeTown}, {player.homeCountry}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </div>
-          );
-        })}
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {outlierType === "high" && (
+                              <Tooltip title="This scout is significantly higher on this player">
+                                <span className="stat-badge stat-badge-high">
+                                  High on {player.firstName}
+                                </span>
+                              </Tooltip>
+                            )}
+                            {outlierType === "low" && (
+                              <Tooltip title="This scout is significantly lower on this player">
+                                <span className="stat-badge stat-badge-low">
+                                  Low on {player.firstName}
+                                </span>
+                              </Tooltip>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Typography variant="h6" className="font-bold text-gray-900">
+                        {player.name}
+                      </Typography>
+                      <Typography variant="body2" className="text-gray-600">
+                        {player.currentTeam} • {player.league}
+                      </Typography>
+                      <Typography variant="body2" className="text-gray-500 mt-1">
+                        {player.homeTown}, {player.homeCountry}
+                      </Typography>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
