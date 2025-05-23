@@ -189,7 +189,7 @@ export default function BigBoard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
           {sortedPlayers.map((player: Player) => {
             const rank = getRank(player.playerId, sortKey, avgRankMap);
-            const [minRank, maxRank] = getMinMaxRank(player.playerId);
+            const [minRank, , maxRank] = getMinMaxRank(player.playerId);
             const outlierType = getOutlierType(player.playerId, sortKey);
 
             return (

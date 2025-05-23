@@ -12,11 +12,6 @@ type Props = {
   means: Record<string, number>;
   stdDevs: Record<string, number>;
 };
-const filteredStats = Object.fromEntries(
-  Object.entries(seasonStats ?? {}).filter(
-    ([key, value]) => typeof value === "number"
-  )
-);
 
 function getStatColorZ(
   value: number | null,

@@ -15,27 +15,38 @@ import PlayerSeasonStatsTable from "./PlayerSeasonStatsTable";
 
 export default function PlayerProfile() {
   const { name } = useParams();
-  const player = bio.find((p) => p.name === decodeURIComponent(name || ""));
+  const decodedName = decodeURIComponent(name || "");
+  const player = bio.find((p) => p.name === decodedName);
+
   const [view, setView] = useState<"season" | "game">("season");
 
-  if (!player) return <div>Player not found</div>;
+  const seasonStats = useMemo(() => {
+    return player
+      ? seasonLogs.find((s) => s.playerId === player.playerId)
+      : null;
+  }, [player]);
 
-  const seasonStats = seasonLogs.find((s) => s.playerId === player.playerId);
-  const playerGameLogs = game_logs.filter(
-    (g) => g.playerId === player.playerId
-  );
+  const playerGameLogs = useMemo(() => {
+    return player
+      ? game_logs.filter((g) => g.playerId === player.playerId)
+      : [];
+  }, [player]);
 
   const { means, stdDevs } = useMemo(() => {
     const allStats = seasonLogs.filter((s) => s !== null);
     const means: Record<string, number> = {};
     const stdDevs: Record<string, number> = {};
 
+    if (!allStats.length) return { means, stdDevs };
+
     Object.keys(allStats[0] || {}).forEach((key) => {
       if (key === "playerId" || key === "age") return;
 
       const values = allStats
-        .map((s) => s[key])
+        .map((s) => s[key as keyof typeof s])
         .filter((v): v is number => v !== null);
+
+      if (!values.length) return;
 
       const mean = values.reduce((a, b) => a + b, 0) / values.length;
       means[key] = mean;
@@ -48,16 +59,16 @@ export default function PlayerProfile() {
     return { means, stdDevs };
   }, []);
 
+  if (!player) return <div>Player not found</div>;
+
   return (
     <Box className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0]">
       <Box className="max-w-7xl mx-auto p-6">
-        {/* Player Header */}
         <Paper
           elevation={3}
           className="mb-8 overflow-hidden bg-gradient-to-r from-[#1e293b] to-[#334155]"
         >
           <Box className="p-6 flex flex-col md:flex-row gap-6 items-center">
-            {/* Player Image */}
             {player.photoUrl && (
               <Box
                 component="img"
@@ -66,8 +77,6 @@ export default function PlayerProfile() {
                 className="w-48 h-48 md:w-64 md:h-64 rounded-xl object-cover shadow-xl"
               />
             )}
-
-            {/* Player Info */}
             <Box className="flex-1 text-center md:text-left">
               <Typography
                 variant="h3"
@@ -104,7 +113,6 @@ export default function PlayerProfile() {
           </Box>
         </Paper>
 
-        {/* Stats Toggle */}
         <Box className="mb-6">
           <ToggleButtonGroup
             value={view}
@@ -134,17 +142,17 @@ export default function PlayerProfile() {
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
-
-        {/* Stats Display */}
         <Box className="bg-white rounded-xl shadow-lg p-6">
           {view === "season" ? (
             seasonStats && (
               <PlayerSeasonStatsTable
-                stats={Object.fromEntries(
-                  Object.entries(seasonStats).filter(
-                    ([_, value]) => typeof value === "number"
-                  )
-                )}
+                stats={
+                  Object.fromEntries(
+                    Object.entries(seasonStats).filter(
+                      ([, value]) => typeof value === "number"
+                    )
+                  ) as Record<string, number | null>
+                }
                 means={means}
                 stdDevs={stdDevs}
               />
