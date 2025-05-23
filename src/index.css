@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen;
+    @apply bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen font-sans;
   }
 }
 
@@ -28,4 +28,42 @@
 
 .stat-badge-low {
   @apply bg-blue-100 text-blue-800;
+}
+
+/* Modern Table Styles */
+.MuiTableContainer-root {
+  @apply rounded-xl overflow-hidden shadow-md;
+}
+
+.MuiTable-root {
+  @apply w-full border-collapse;
+}
+
+.MuiTableHead-root {
+  @apply bg-gray-50;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  @apply font-semibold text-gray-700 text-sm uppercase tracking-wider py-4;
+}
+
+.MuiTableBody-root .MuiTableCell-root {
+  @apply text-gray-800 border-t border-gray-200 py-3;
+}
+
+.MuiTableRow-root:hover {
+  @apply bg-gray-50 transition-colors duration-150;
+}
+
+/* Toggle Button Styles */
+.MuiToggleButtonGroup-root {
+  @apply shadow-sm;
+}
+
+.MuiToggleButton-root {
+  @apply border-0 font-medium transition-colors duration-200;
+}
+
+.MuiToggleButton-root.Mui-selected {
+  @apply bg-blue-500 text-white hover:bg-blue-600;
 }
