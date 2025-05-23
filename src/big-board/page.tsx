@@ -148,12 +148,12 @@ export default function BigBoard() {
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <Typography variant="h4" className="font-black text-gray-800 tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12">
+          <Typography variant="h3" className="font-black text-gray-800 tracking-tight">
             2025 NBA Draft Big Board
           </Typography>
 
-          <FormControl className="mt-4 sm:mt-0 w-64">
+          <FormControl className="mt-4 sm:mt-0 w-72">
             <InputLabel id="sort-select-label">Sort by</InputLabel>
             <Select
               labelId="sort-select-label"
@@ -171,7 +171,7 @@ export default function BigBoard() {
           </FormControl>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
           {sortedPlayers.map((player: Player) => {
             const rank = getRank(player.playerId, sortKey, avgRankMap);
             const [minRank, minSource, maxRank, maxSource] = getMinMaxRank(
@@ -185,63 +185,68 @@ export default function BigBoard() {
                   onClick={() =>
                     navigate(`/player/${encodeURIComponent(player.name)}`)
                   }
-                  className="player-card rounded-2xl cursor-pointer"
+                  className="player-card rounded-3xl cursor-pointer overflow-hidden"
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      {typeof rank === "number" && isFinite(rank) && (
-                        <div className="rank-badge">#{Math.round(rank)}</div>
-                      )}
+                  <CardContent className="p-0">
+                    <div className="relative">
+                      <div className="absolute top-4 left-4 z-10">
+                        {typeof rank === "number" && isFinite(rank) && (
+                          <div className="rank-badge">#{Math.round(rank)}</div>
+                        )}
+                      </div>
                       <Avatar
                         src={player.photoUrl || undefined}
                         alt={player.name}
-                        sx={{ width: 64, height: 64 }}
-                        className="border-2 border-white shadow-md"
+                        sx={{ width: "100%", height: 280 }}
+                        variant="square"
+                        className="object-cover"
                       />
-                      <div className="flex flex-col items-end space-y-1">
-                        {sortKey === "Average Rank" ? (
-                          <>
-                            {isFinite(minRank) && (
-                              <span className="stat-badge stat-badge-high">
-                                High: {minRank} ({minSource.replace(" Rank", "")})
-                              </span>
-                            )}
-                            {isFinite(maxRank) && (
-                              <span className="stat-badge stat-badge-low">
-                                Low: {maxRank} ({maxSource.replace(" Rank", "")})
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {outlierType === "high" && (
-                              <Tooltip title="This scout is significantly higher on this player">
-                                <span className="stat-badge stat-badge-high">
-                                  High on {player.firstName}
-                                </span>
-                              </Tooltip>
-                            )}
-                            {outlierType === "low" && (
-                              <Tooltip title="This scout is significantly lower on this player">
-                                <span className="stat-badge stat-badge-low">
-                                  Low on {player.firstName}
-                                </span>
-                              </Tooltip>
-                            )}
-                          </>
-                        )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                        <Typography variant="h5" className="font-bold text-white mb-1">
+                          {player.name}
+                        </Typography>
+                        <div className="flex items-center justify-between">
+                          <Typography variant="body2" className="text-gray-200">
+                            {player.currentTeam}
+                          </Typography>
+                          <Typography variant="body2" className="text-gray-300">
+                            {player.homeCountry}
+                          </Typography>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <Typography variant="h6" className="font-bold text-gray-900">
-                        {player.name}
-                      </Typography>
-                      <Typography variant="body2" className="text-gray-600">
-                        {player.currentTeam} • {player.league}
-                      </Typography>
-                      <Typography variant="body2" className="text-gray-500 mt-1">
-                        {player.homeTown}, {player.homeCountry}
-                      </Typography>
+                    <div className="px-4 py-3">
+                      {sortKey === "Average Rank" ? (
+                        <div className="flex justify-between gap-2">
+                          {isFinite(minRank) && (
+                            <span className="stat-badge stat-badge-high flex-1 text-center">
+                              Highest: {minRank}
+                            </span>
+                          )}
+                          {isFinite(maxRank) && (
+                            <span className="stat-badge stat-badge-low flex-1 text-center">
+                              Lowest: {maxRank}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-center">
+                          {outlierType === "high" && (
+                            <Tooltip title="This scout is significantly higher on this player">
+                              <span className="stat-badge stat-badge-high">
+                                High on {player.firstName}
+                              </span>
+                            </Tooltip>
+                          )}
+                          {outlierType === "low" && (
+                            <Tooltip title="This scout is significantly lower on this player">
+                              <span className="stat-badge stat-badge-low">
+                                Low on {player.firstName}
+                              </span>
+                            </Tooltip>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
