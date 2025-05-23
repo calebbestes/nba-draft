@@ -316,6 +316,7 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
         onChange={(_, val) => val && setStatView(val)}
         size="small"
         sx={{ mb: 2 }}
+        className="rounded-xl shadow-xl border border-[#CBD5E1] bg-[#F8FAFC]"
       >
         <ToggleButton value="basic">Basic Stats</ToggleButton>
         <ToggleButton value="advanced">Advanced Stats</ToggleButton>

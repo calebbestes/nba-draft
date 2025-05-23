@@ -9,6 +9,7 @@ import { bio } from "../data/bio";
 import { scoutRankings } from "../data/scoutRankings";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
+import MavsLogo from "../assets/dallas-mavericks-1-removebg-preview.png";
 
 const rankingSources = [
   "Average Rank",
@@ -140,50 +141,56 @@ export default function BigBoard() {
   const navigate = useNavigate();
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-br from-[#B8C4CA] via-white to-[#E6ECF1]">
+    <div className="p-6 min-h-screen bg-[#0C2340] text-white">
+      <img
+        src={MavsLogo}
+        alt="Dallas Mavericks Logo"
+        className="absolute top-6 right-6 w-50 sm:w-20 md:w-24 lg:w-28 z-50"
+      />
+
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-16 gap-10">
             <div className="text-center sm:text-left relative w-fit">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#002B5E]">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
                 2025 NBA Draft
-                <span className="block text-[#00538C] bg-clip-text text-transparent bg-gradient-to-r from-[#00538C] to-[#B8C4CA]">
+                <span className="block text-[#00A3E0] bg-clip-text text-transparent bg-gradient-to-r from-[#00A3E0] to-[#A0AEC0]">
                   Big Board
                 </span>
               </h1>
               <span className="absolute left-0 -bottom-1 w-full h-1 bg-gradient-to-r from-[#00538C] to-[#B8C4CA] rounded-md animate-pulse"></span>
             </div>
+          </div>
 
-            <div className="sm:mt-8 sm:self-end">
-              <FormControl className="w-72">
-                <InputLabel id="sort-select-label" sx={{ color: "#002B5E" }}>
-                  Sort by
-                </InputLabel>
-                <Select
-                  labelId="sort-select-label"
-                  value={sortKey}
-                  label="Sort by"
-                  onChange={(e) => setSortKey(e.target.value)}
-                  className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-[#00538C] focus:ring-2 focus:ring-[#00538C]"
-                  sx={{
-                    fontWeight: 600,
-                    color: "#002B5E",
-                    "& .MuiSelect-icon": {
-                      color: "#00538C",
-                    },
-                    "&:hover": {
-                      borderColor: "#B8C4CA",
-                    },
-                  }}
-                >
-                  {rankingSources.map((source) => (
-                    <MenuItem key={source} value={source}>
-                      {source}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
+          <div className="sm:mt-8 sm:self-end">
+            <FormControl className="w-72">
+              <InputLabel id="sort-select-label" sx={{ color: "#A0AEC0" }}>
+                Sort by
+              </InputLabel>
+              <Select
+                labelId="sort-select-label"
+                value={sortKey}
+                label="Sort by"
+                onChange={(e) => setSortKey(e.target.value)}
+                className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-[#00538C] focus:ring-2 focus:ring-[#00538C]"
+                sx={{
+                  fontWeight: 600,
+                  color: "#002B5E",
+                  "& .MuiSelect-icon": {
+                    color: "#00538C",
+                  },
+                  "&:hover": {
+                    borderColor: "#B8C4CA",
+                  },
+                }}
+              >
+                {rankingSources.map((source) => (
+                  <MenuItem key={source} value={source}>
+                    {source}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
@@ -223,7 +230,7 @@ export default function BigBoard() {
                               </div>
                             </Tooltip>
                           ) : (
-                            <div className="bg-[#00538C] hover:bg-[#002B5E] text-white font-semibold px-3 py-1 rounded-lg text-sm shadow transition">
+                            <div className="bg-[#007DC5] hover:bg-[#005A8E] text-white font-semibold px-3 py-1 rounded-lg text-sm shadow transition">
                               #{Math.round(rank)}
                             </div>
                           )}
