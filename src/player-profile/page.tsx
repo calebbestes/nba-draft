@@ -140,7 +140,11 @@ export default function PlayerProfile() {
           {view === "season" ? (
             seasonStats && (
               <PlayerSeasonStatsTable
-                stats={seasonStats}
+                stats={Object.fromEntries(
+                  Object.entries(seasonStats).filter(
+                    ([_, value]) => typeof value === "number"
+                  )
+                )}
                 means={means}
                 stdDevs={stdDevs}
               />
