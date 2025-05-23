@@ -8,18 +8,22 @@ import {
   Typography,
   Paper,
   Box,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
-import { useMemo } from "react";
-import { useState } from "react";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { useMemo, useState } from "react";
 
-type GameLog = {
+interface GameLogBase {
   date: string;
   opponent?: string;
   result?: string;
   timePlayed?: string;
   pts?: number;
-  [key: string]: any;
+  [key: string]: string | number | null | undefined;
+}
+
+type GameLog = GameLogBase & {
+  [key: string]: string | number | null | undefined;
 };
 
 type Props = {
@@ -39,7 +43,7 @@ const statKeys = [
   "pts",
 ];
 
-const statLabels: { [key: string]: string } = {
+const statLabels: Record<string, string> = {
   usgPct: "USG%",
   tsPct: "TS%",
   efgPct: "eFG%",
@@ -51,6 +55,7 @@ const statLabels: { [key: string]: string } = {
   gameScore: "Game Score",
   pts: "PTS",
 };
+
 const basicStatKeys = [
   "fgm",
   "fga",
@@ -73,7 +78,7 @@ const basicStatKeys = [
   "plusMinus",
 ];
 
-const basicStatLabels: { [key: string]: string } = {
+const basicStatLabels: Record<string, string> = {
   fgm: "FGM",
   fga: "FGA",
   "fg%": "FG%",
@@ -95,11 +100,43 @@ const basicStatLabels: { [key: string]: string } = {
   plusMinus: "+/-",
 };
 
+interface PlayerStats {
+  fgm: number;
+  fga: number;
+  tpm: number;
+  ftm: number;
+  fta: number;
+  oreb: number;
+  dreb: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tov: number;
+  pf: number;
+  pts: number;
+  plusMinus?: number;
+  timePlayed?: string;
+}
+
+interface TeamStats {
+  minutes: number;
+  fga: number;
+  fta: number;
+  tov: number;
+  fgm: number;
+  reb: number;
+}
+
+interface OpponentStats {
+  reb: number;
+}
+
 function calculateAdvancedStats(
-  playerStats: any,
-  teamStats: any,
-  opponentStats: any
-) {
+  playerStats: PlayerStats,
+  teamStats: TeamStats,
+  opponentStats: OpponentStats
+): Record<string, number | null | undefined> {
   const {
     fgm,
     fga,
@@ -179,36 +216,56 @@ function calculateAdvancedStats(
   };
 }
 
-function getStatColorZ(value: number, mean: number, stdDev: number): string {
-  if (value === null || isNaN(value)) return "transparent";
-
-  const z = (value - mean) / stdDev;
-
-  if (z >= 2) return "rgba(0, 128, 0, 0.35)"; // strong green
-  if (z >= 1.5) return "rgba(0, 160, 0, 0.25)"; // medium green
-  if (z >= 0.75) return "rgba(0, 200, 0, 0.15)"; // light green
-
-  if (z <= -2) return "rgba(200, 0, 0, 0.35)"; // strong red
-  if (z <= -1.5) return "rgba(220, 50, 0, 0.25)"; // medium red
-  if (z <= -0.75) return "rgba(240, 100, 0, 0.15)"; // light red
-
-  return "transparent"; // neutral
-}
-
-function parseTimeToMinutes(timeStr: string) {
+function parseTimeToMinutes(timeStr: string): number {
   const [min, sec] = (timeStr || "0:00").split(":").map(Number);
   return min + sec / 60;
 }
 
-function round(num: number | null) {
+function round(num: number | null): number | null {
   return num !== null && !isNaN(num) ? Math.round(num * 100) / 100 : null;
 }
 
+function getStatColorZ(value: number, mean: number, stdDev: number): string {
+  if (value === null || isNaN(value)) return "transparent";
+  const z = (value - mean) / stdDev;
+
+  if (z >= 2) return "rgba(0, 128, 0, 0.35)";
+  if (z >= 1.5) return "rgba(0, 160, 0, 0.25)";
+  if (z >= 0.75) return "rgba(0, 200, 0, 0.15)";
+  if (z <= -2) return "rgba(200, 0, 0, 0.35)";
+  if (z <= -1.5) return "rgba(220, 50, 0, 0.25)";
+  if (z <= -0.75) return "rgba(240, 100, 0, 0.15)";
+
+  return "transparent";
+}
+
 export default function PlayerGameLogTable({ gameLogs }: Props) {
-  // 1. Process advanced stats
+  const [statView, setStatView] = useState<"advanced" | "basic">("advanced");
+
   const processedLogs = useMemo(() => {
     return gameLogs.map((log) => {
-      const teamStats = {
+      const playerStats: PlayerStats = {
+        fgm: Number(log.fgm),
+        fga: Number(log.fga),
+        tpm: Number(log.tpm),
+        ftm: Number(log.ftm),
+        fta: Number(log.fta),
+        oreb: Number(log.oreb),
+        dreb: Number(log.dreb),
+        reb: Number(log.reb),
+        ast: Number(log.ast),
+        stl: Number(log.stl),
+        blk: Number(log.blk),
+        tov: Number(log.tov),
+        pf: Number(log.pf),
+        pts: Number(log.pts),
+        plusMinus:
+          typeof log.plusMinus === "number" ? log.plusMinus : undefined,
+        timePlayed:
+          typeof log.timePlayed === "string" ? log.timePlayed : "0:00",
+      };
+
+      const teamStats: TeamStats = {
         minutes: 200,
         fga: 60,
         fta: 20,
@@ -217,28 +274,25 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
         reb: 35,
       };
 
-      const opponentStats = {
+      const opponentStats: OpponentStats = {
         reb: 38,
       };
 
       return {
         ...log,
-        ...calculateAdvancedStats(log, teamStats, opponentStats),
+        ...calculateAdvancedStats(playerStats, teamStats, opponentStats),
       };
     });
   }, [gameLogs]);
-  const [statView, setStatView] = useState<"advanced" | "basic">("advanced");
 
   const statDistributions = useMemo(() => {
     const stats: Record<string, { mean: number; stdDev: number }> = {};
-
     statKeys.forEach((key) => {
       const values = processedLogs
         .map((log) => log[key])
-        .filter((v) => typeof v === "number");
+        .filter((v): v is number => typeof v === "number");
 
       const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-
       const stdDev = Math.sqrt(
         values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
           values.length
@@ -253,7 +307,7 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Game Log – Advanced Stats
+        Game Log – {statView === "advanced" ? "Advanced" : "Basic"} Stats
       </Typography>
 
       <ToggleButtonGroup
@@ -300,29 +354,32 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
                 <TableCell>{log.opponent ?? "-"}</TableCell>
                 <TableCell>{log.result ?? "-"}</TableCell>
                 <TableCell>{log.timePlayed ?? "-"}</TableCell>
-                {statKeys.map((key) => {
-                  const value = log[key];
-                  const dist = statDistributions[key];
-                  const bgColor =
-                    value !== undefined && value !== null
-                      ? getStatColorZ(value, dist.mean, dist.stdDev)
-                      : "transparent";
+                {(statView === "advanced" ? statKeys : basicStatKeys).map(
+                  (key) => {
+                    const value = log[key];
+                    const dist = statDistributions[key];
+                    const bgColor =
+                      statView === "advanced" &&
+                      typeof value === "number" &&
+                      dist
+                        ? getStatColorZ(value, dist.mean, dist.stdDev)
+                        : "transparent";
 
-                  return (
-                    <TableCell
-                      key={key}
-                      align="right"
-                      style={{
-                        backgroundColor: bgColor,
-                        color: "#111", // dark text is readable on light tint
-                      }}
-                    >
-                      {value !== undefined && value !== null
-                        ? value.toFixed(1)
-                        : "-"}
-                    </TableCell>
-                  );
-                })}
+                    return (
+                      <TableCell
+                        key={key}
+                        align="right"
+                        style={{ backgroundColor: bgColor, color: "#111" }}
+                      >
+                        {typeof value === "number"
+                          ? value.toFixed(1)
+                          : typeof value === "string"
+                            ? value
+                            : "-"}
+                      </TableCell>
+                    );
+                  }
+                )}
               </TableRow>
             ))}
           </TableBody>
