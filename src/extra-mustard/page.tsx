@@ -1,3 +1,8 @@
+// form
+// filter
 // compare players
-// trends
 // fit/team needs
+//header
+// trends
+// embedded mixtape
+// add null photo urls

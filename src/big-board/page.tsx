@@ -145,7 +145,7 @@ export default function BigBoard() {
       <img
         src={MavsLogo}
         alt="Dallas Mavericks Logo"
-        className="absolute top-6 right-6 w-50 sm:w-20 md:w-24 lg:w-28 z-50"
+        className="absolute top-4 right-4 w-16 sm:w-20 md:w-24 lg:w-28 z-50 max-w-[25%]"
       />
 
       <div className="max-w-7xl mx-auto">
@@ -200,7 +200,10 @@ export default function BigBoard() {
             const outlierType = getOutlierType(player.playerId, sortKey);
 
             return (
-              <div key={player.playerId} className="cursor-pointer">
+              <div
+                key={player.playerId}
+                className="cursor-pointer transform scale-90 sm:scale-95 md:scale-100"
+              >
                 <div
                   onClick={() =>
                     navigate(`/player/${encodeURIComponent(player.name)}`)
