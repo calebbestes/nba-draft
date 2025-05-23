@@ -63,9 +63,36 @@ export default function PlayerProfile() {
 
   return (
     <Box p={4}>
-      <Typography variant="h4" gutterBottom>
-        {player.name}
-      </Typography>
+      <Box
+        sx={{
+          backgroundColor: "#121212", // sleek dark background
+          borderRadius: 2,
+          padding: 3,
+          mb: 3,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          boxShadow: 3,
+        }}
+      >
+        <Typography variant="h4" color="white">
+          {player.name}
+        </Typography>
+        {player.photoUrl && (
+          <Box
+            component="img"
+            src={player.photoUrl}
+            alt={`${player.name} headshot`}
+            sx={{
+              width: 160,
+              height: 160,
+              borderRadius: "8px",
+              objectFit: "cover",
+              boxShadow: 3,
+            }}
+          />
+        )}
+      </Box>
 
       <ToggleButtonGroup
         value={view}

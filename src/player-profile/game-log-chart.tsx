@@ -10,6 +10,8 @@ import {
   Box,
 } from "@mui/material";
 import { useMemo } from "react";
+import { useState } from "react";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 type GameLog = {
   date: string;
@@ -48,6 +50,49 @@ const statLabels: { [key: string]: string } = {
   pps: "PPS",
   gameScore: "Game Score",
   pts: "PTS",
+};
+const basicStatKeys = [
+  "fgm",
+  "fga",
+  "fg%",
+  "tpm",
+  "tpa",
+  "tp%",
+  "ftm",
+  "fta",
+  "ft%",
+  "oreb",
+  "dreb",
+  "reb",
+  "ast",
+  "stl",
+  "blk",
+  "tov",
+  "pf",
+  "pts",
+  "plusMinus",
+];
+
+const basicStatLabels: { [key: string]: string } = {
+  fgm: "FGM",
+  fga: "FGA",
+  "fg%": "FG%",
+  tpm: "3PM",
+  tpa: "3PA",
+  "tp%": "3P%",
+  ftm: "FTM",
+  fta: "FTA",
+  "ft%": "FT%",
+  oreb: "OREB",
+  dreb: "DREB",
+  reb: "REB",
+  ast: "AST",
+  stl: "STL",
+  blk: "BLK",
+  tov: "TOV",
+  pf: "PF",
+  pts: "PTS",
+  plusMinus: "+/-",
 };
 
 function calculateAdvancedStats(
@@ -134,6 +179,22 @@ function calculateAdvancedStats(
   };
 }
 
+function getStatColorZ(value: number, mean: number, stdDev: number): string {
+  if (value === null || isNaN(value)) return "transparent";
+
+  const z = (value - mean) / stdDev;
+
+  if (z >= 2) return "rgba(0, 128, 0, 0.35)"; // strong green
+  if (z >= 1.5) return "rgba(0, 160, 0, 0.25)"; // medium green
+  if (z >= 0.75) return "rgba(0, 200, 0, 0.15)"; // light green
+
+  if (z <= -2) return "rgba(200, 0, 0, 0.35)"; // strong red
+  if (z <= -1.5) return "rgba(220, 50, 0, 0.25)"; // medium red
+  if (z <= -0.75) return "rgba(240, 100, 0, 0.15)"; // light red
+
+  return "transparent"; // neutral
+}
+
 function parseTimeToMinutes(timeStr: string) {
   const [min, sec] = (timeStr || "0:00").split(":").map(Number);
   return min + sec / 60;
@@ -144,6 +205,7 @@ function round(num: number | null) {
 }
 
 export default function PlayerGameLogTable({ gameLogs }: Props) {
+  // 1. Process advanced stats
   const processedLogs = useMemo(() => {
     return gameLogs.map((log) => {
       const teamStats = {
@@ -165,12 +227,46 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
       };
     });
   }, [gameLogs]);
+  const [statView, setStatView] = useState<"advanced" | "basic">("advanced");
+
+  const statDistributions = useMemo(() => {
+    const stats: Record<string, { mean: number; stdDev: number }> = {};
+
+    statKeys.forEach((key) => {
+      const values = processedLogs
+        .map((log) => log[key])
+        .filter((v) => typeof v === "number");
+
+      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+
+      const stdDev = Math.sqrt(
+        values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+          values.length
+      );
+
+      stats[key] = { mean, stdDev };
+    });
+
+    return stats;
+  }, [processedLogs]);
 
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
         Game Log – Advanced Stats
       </Typography>
+
+      <ToggleButtonGroup
+        value={statView}
+        exclusive
+        onChange={(_, val) => val && setStatView(val)}
+        size="small"
+        sx={{ mb: 2 }}
+      >
+        <ToggleButton value="basic">Basic Stats</ToggleButton>
+        <ToggleButton value="advanced">Advanced Stats</ToggleButton>
+      </ToggleButtonGroup>
+
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -179,11 +275,17 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
               <TableCell>Opponent</TableCell>
               <TableCell>Result</TableCell>
               <TableCell>MIN</TableCell>
-              {statKeys.map((key) => (
-                <TableCell key={key} align="right">
-                  {statLabels[key]}
-                </TableCell>
-              ))}
+              {(statView === "advanced" ? statKeys : basicStatKeys).map(
+                (key) => (
+                  <TableCell key={key} align="right">
+                    {
+                      (statView === "advanced" ? statLabels : basicStatLabels)[
+                        key
+                      ]
+                    }
+                  </TableCell>
+                )
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -198,13 +300,29 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
                 <TableCell>{log.opponent ?? "-"}</TableCell>
                 <TableCell>{log.result ?? "-"}</TableCell>
                 <TableCell>{log.timePlayed ?? "-"}</TableCell>
-                {statKeys.map((key) => (
-                  <TableCell key={key} align="right">
-                    {log[key] !== undefined && log[key] !== null
-                      ? log[key].toFixed(1)
-                      : "-"}
-                  </TableCell>
-                ))}
+                {statKeys.map((key) => {
+                  const value = log[key];
+                  const dist = statDistributions[key];
+                  const bgColor =
+                    value !== undefined && value !== null
+                      ? getStatColorZ(value, dist.mean, dist.stdDev)
+                      : "transparent";
+
+                  return (
+                    <TableCell
+                      key={key}
+                      align="right"
+                      style={{
+                        backgroundColor: bgColor,
+                        color: "#111", // dark text is readable on light tint
+                      }}
+                    >
+                      {value !== undefined && value !== null
+                        ? value.toFixed(1)
+                        : "-"}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>
