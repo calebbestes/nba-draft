@@ -28,13 +28,13 @@ function getStatColorZ(
 
   const z = (value - mean) / stdDev;
 
-  if (z >= 1.5) return "rgba(0, 128, 0, 0.35)";
-  if (z >= 1.0) return "rgba(0, 160, 0, 0.25)";
-  if (z >= 0.5) return "rgba(0, 200, 0, 0.15)";
+  if (z >= 1.5) return "rgba(0, 128, 0, 0.15)";
+  if (z >= 1.0) return "rgba(0, 160, 0, 0.1)";
+  if (z >= 0.5) return "rgba(0, 200, 0, 0.05)";
 
-  if (z <= -1.5) return "rgba(200, 0, 0, 0.35)";
-  if (z <= -1.0) return "rgba(220, 50, 0, 0.25)";
-  if (z <= -0.5) return "rgba(240, 100, 0, 0.15)";
+  if (z <= -1.5) return "rgba(200, 0, 0, 0.15)";
+  if (z <= -1.0) return "rgba(220, 50, 0, 0.1)";
+  if (z <= -0.5) return "rgba(240, 100, 0, 0.05)";
 
   return "transparent";
 }
@@ -91,17 +91,20 @@ export default function PlayerSeasonStatsTable({
   ];
 
   const displayKeys = type === "basic" ? basicStats : advancedStats;
-
   const noColorKeys = new Set(["Season", "w", "l"]);
 
   return (
-    <Paper elevation={3}>
+    <Paper elevation={0} className="rounded-xl overflow-hidden border border-white/10">
       <div className="overflow-x-auto">
         <Table style={{ minWidth: "800px" }}>
           <TableHead>
             <TableRow>
               {displayKeys.map((key) => (
-                <TableCell key={key} align="center">
+                <TableCell 
+                  key={key} 
+                  align="center"
+                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                >
                   {key}
                 </TableCell>
               ))}
@@ -109,7 +112,10 @@ export default function PlayerSeasonStatsTable({
           </TableHead>
           <TableBody>
             {stats.map((seasonStats, idx) => (
-              <TableRow key={idx}>
+              <TableRow 
+                key={idx}
+                className="transition-colors hover:bg-white/5"
+              >
                 {displayKeys.map((key) => {
                   const raw = seasonStats[key] ?? null;
                   const value = typeof raw === "number" ? raw : null;
@@ -127,6 +133,9 @@ export default function PlayerSeasonStatsTable({
                     <TableCell
                       key={key}
                       align="center"
+                      className={`text-sm py-3 border-b border-white/5 font-medium
+                        ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
+                      `}
                       style={{ backgroundColor: bgColor }}
                     >
                       {typeof raw === "number"
