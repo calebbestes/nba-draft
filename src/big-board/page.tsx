@@ -1,7 +1,6 @@
 import { MenuItem, Tooltip, Select, FormControl } from "@mui/material";
 import { bio } from "../data/bio";
 import { scoutRankings } from "../data/scoutRankings";
-import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import {
   getSpecialtyMap,
@@ -10,6 +9,8 @@ import {
 import Header from "../components/header";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const rankingSources = [
   "Average Rank",
@@ -227,6 +228,29 @@ export default function BigBoard() {
           </div>
         </div>
       </div>
+      {starred.size > 0 && (
+        <div className="mt-6 flex justify-end max-w-7xl mx-auto">
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={starred.size > 3}
+            onClick={() => {
+              const ids = [...starred].slice(0, 3); // limit to 3
+              navigate(`/compare?players=${ids.join(",")}`);
+            }}
+            sx={{
+              backgroundColor: "#00A3E0",
+              textTransform: "none",
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#007DC5",
+              },
+            }}
+          >
+            Compare Starred Players
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
         {sortedPlayers.map((player) => {
@@ -249,22 +273,24 @@ export default function BigBoard() {
               >
                 <div className="relative">
                   <div className="absolute top-4 right-4 z-10">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // prevent card click
-                        toggleStar(player.playerId);
-                      }}
-                      className="text-yellow-400 hover:text-yellow-300 transition"
-                    >
-                      {starred.has(player.playerId) ? (
-                        <StarIcon fontSize="medium" />
-                      ) : (
-                        <StarBorderIcon fontSize="medium" />
-                      )}
-                    </button>
+                    <Tooltip title="Watch this player" arrow placement="top">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent card click
+                          toggleStar(player.playerId);
+                        }}
+                        className="text-yellow-400 hover:text-yellow-300 transition"
+                      >
+                        {starred.has(player.playerId) ? (
+                          <StarIcon fontSize="medium" />
+                        ) : (
+                          <StarBorderIcon fontSize="medium" />
+                        )}
+                      </button>
+                    </Tooltip>
                   </div>
                   <div className="absolute top-4 left-4 z-10">
-                    {typeof rank === "number" && isFinite(rank) && (
+                    {typeof rank === "number" && isFinite(rank) ? (
                       <Tooltip
                         title={
                           <div className="text-sm leading-tight space-y-1">
@@ -301,18 +327,28 @@ export default function BigBoard() {
                       >
                         <div
                           className={`w-12 h-12 flex items-center justify-center rounded-full font-extrabold text-lg shadow-md hover:shadow-lg transition cursor-help
-      ${
-        outlierType === "high"
-          ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-          : outlierType === "low"
-            ? "bg-red-600 hover:bg-red-700 text-white"
-            : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
-      }`}
+        ${
+          outlierType === "high"
+            ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+            : outlierType === "low"
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
+        }`}
                         >
                           #{Math.round(rank)}
                         </div>
                       </Tooltip>
-                    )}
+                    ) : sortKey !== "Average Rank" && sortKey !== "Starred" ? (
+                      <Tooltip
+                        title={`Not ranked by ${sortKey}`}
+                        arrow
+                        placement="right"
+                      >
+                        <div className="w-12 h-12 flex items-center justify-center rounded-full font-extrabold text-lg shadow-md hover:shadow-lg transition cursor-help bg-red-600 hover:bg-red-700 text-white">
+                          NR
+                        </div>
+                      </Tooltip>
+                    ) : null}
                   </div>
 
                   {player.photoUrl ? (

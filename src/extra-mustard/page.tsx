@@ -1,4 +1,11 @@
-// compare players
-// fit/team needs
-// trends
-// embedded mixtape
+import Header from "../components/header";
+import PlayerComparison from "./player-comparison";
+
+export default function ExtraMustard() {
+  return (
+    <>
+      <Header />
+      <PlayerComparison />;
+    </>
+  );
+}
