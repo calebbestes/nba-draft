@@ -136,6 +136,27 @@ export default function BigBoard() {
               />
             </div>
           </FormControl>
+          {starred.size > 0 && (
+            <div className="w-full flex justify-center items-center">
+              <button
+                disabled={starred.size > 3}
+                onClick={() => {
+                  const ids = [...starred].slice(0, 3);
+                  navigate(`/compare?players=${ids.join(",")}`);
+                }}
+                className={`px-8 py-3 text-lg font-bold text-white rounded-2xl transition-all duration-300 ease-in-out
+        ${
+          starred.size > 3
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-gradient-to-r from-[#007A33] to-[#00B140] hover:from-[#006326] hover:to-[#009933] shadow-xl hover:shadow-2xl"
+        }
+      `}
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}
+              >
+                Compare Starred Players
+              </button>
+            </div>
+          )}
 
           <div className="ml-auto w-70 rounded-xl border border-[#00A3E0] p-3 bg-white/10 backdrop-blur-sm shadow-sm flex flex-col ">
             <FormControl sx={{ width: "100%" }}>
@@ -228,29 +249,6 @@ export default function BigBoard() {
           </div>
         </div>
       </div>
-      {starred.size > 0 && (
-        <div className="mt-6 flex justify-end max-w-7xl mx-auto">
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={starred.size > 3}
-            onClick={() => {
-              const ids = [...starred].slice(0, 3); // limit to 3
-              navigate(`/compare?players=${ids.join(",")}`);
-            }}
-            sx={{
-              backgroundColor: "#00A3E0",
-              textTransform: "none",
-              fontWeight: "bold",
-              "&:hover": {
-                backgroundColor: "#007DC5",
-              },
-            }}
-          >
-            Compare Starred Players
-          </Button>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
         {sortedPlayers.map((player) => {
