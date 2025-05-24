@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 
 type Props = {
-  stats: Record<string, number | null>;
+  stats: Record<string, number | string | null>[];
   means: Record<string, number>;
   stdDevs: Record<string, number>;
 };
@@ -40,9 +40,11 @@ export default function PlayerSeasonStatsTable({
 }: Props) {
   if (!stats) return null;
 
-  const displayKeys = Object.keys(stats).filter(
-    (key) => key !== "playerId" && key !== "age"
-  );
+  const displayKeys = stats.length
+    ? Object.keys(stats[0]).filter((key) => key !== "playerId" && key !== "age")
+    : [];
+
+  const noColorKeys = new Set(["Season", "w", "l"]);
 
   return (
     <Paper elevation={3}>
@@ -58,29 +60,37 @@ export default function PlayerSeasonStatsTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            <TableRow>
-              {displayKeys.map((key) => {
-                const value = stats[key];
-                const mean = means[key];
-                const stdDev = stdDevs[key];
-                const bgColor =
-                  typeof value === "number" &&
-                  typeof mean === "number" &&
-                  typeof stdDev === "number"
-                    ? getStatColorZ(value, mean, stdDev)
-                    : "transparent";
+            {stats.map((seasonStats, idx) => (
+              <TableRow key={idx}>
+                {displayKeys.map((key) => {
+                  const raw = seasonStats[key];
+                  const value = typeof raw === "number" ? raw : null;
+                  const mean = means[key];
+                  const stdDev = stdDevs[key];
+                  const bgColor =
+                    !noColorKeys.has(key) &&
+                    value !== null &&
+                    typeof mean === "number" &&
+                    typeof stdDev === "number"
+                      ? getStatColorZ(value, mean, stdDev)
+                      : "transparent";
 
-                return (
-                  <TableCell
-                    key={key}
-                    align="center"
-                    style={{ backgroundColor: bgColor }}
-                  >
-                    {value ?? "-"}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
+                  return (
+                    <TableCell
+                      key={key}
+                      align="center"
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      {typeof raw === "number"
+                        ? key === "Season"
+                          ? Math.round(raw)
+                          : raw.toFixed(1)
+                        : (raw ?? "-")}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

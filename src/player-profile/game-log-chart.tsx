@@ -287,7 +287,9 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
 
   const statDistributions = useMemo(() => {
     const stats: Record<string, { mean: number; stdDev: number }> = {};
-    statKeys.forEach((key) => {
+    const allKeys = [...statKeys, ...basicStatKeys];
+
+    allKeys.forEach((key) => {
       const values = processedLogs
         .map((log) => log[key])
         .filter((v): v is number => typeof v === "number");
@@ -328,8 +330,6 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
             <TableRow>
               <TableCell>Date</TableCell>
               <TableCell>Opponent</TableCell>
-              <TableCell>Result</TableCell>
-              <TableCell>MIN</TableCell>
               {(statView === "advanced" ? statKeys : basicStatKeys).map(
                 (key) => (
                   <TableCell key={key} align="right">
@@ -353,16 +353,13 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
                   })}
                 </TableCell>
                 <TableCell>{log.opponent ?? "-"}</TableCell>
-                <TableCell>{log.result ?? "-"}</TableCell>
-                <TableCell>{log.timePlayed ?? "-"}</TableCell>
                 {(statView === "advanced" ? statKeys : basicStatKeys).map(
                   (key) => {
                     const value = log[key];
                     const dist = statDistributions[key];
+
                     const bgColor =
-                      statView === "advanced" &&
-                      typeof value === "number" &&
-                      dist
+                      typeof value === "number" && dist
                         ? getStatColorZ(value, dist.mean, dist.stdDev)
                         : "transparent";
 

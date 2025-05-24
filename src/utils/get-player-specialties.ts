@@ -7,7 +7,8 @@ export type Specialty =
   | "Stretch Big"
   | "Three and D"
   | "Floor General"
-  | "Shot Creator";
+  | "Shot Creator"
+  | "Starred";
 
 const fallbackCycle: Specialty[] = [
   "Utility Big",
@@ -15,6 +16,7 @@ const fallbackCycle: Specialty[] = [
   "Three and D",
   "Floor General",
   "Shot Creator",
+  "Starred",
 ];
 
 export function getSpecialtyMap(
