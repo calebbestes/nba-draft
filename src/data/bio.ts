@@ -53,7 +53,8 @@ export const bio = [
     homeState: "TN",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.proballers.com/media/cache/resize_600_png/https---www.proballers.com/ul/player/1-1f030c8b-a001-6202-8055-49897f939d92.png",
     currentTeam: "Rutgers",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -172,7 +173,8 @@ export const bio = [
     homeState: "IL",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.usab.com/imgproxy/pGEgmKdOFcuRPJPbVCBrpt6J3CLWZsz_Do8AahUZHjQ/rs:fit:3000:0:0/g:ce/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3VzYWItY29tLXByb2QvdXBsb2FkLzIwMjQvMDUvMjgvYjZiY2RmMzMtYzI1Ny00ZTM0LWI0YmYtYjNhYjE2MGJkMDMxLnBuZw.png",
     currentTeam: "Oklahoma",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -231,7 +233,8 @@ export const bio = [
     homeState: null,
     homeCountry: "France",
     nationality: "France",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.proballers.com/media/cache/resize_600_png/https---www.proballers.com/ul/player/joan-beringer2-1ef7b527-0c8f-6b16-a1f2-a9cebb64ebd2.png",
     currentTeam: "Cedevita Olimpija",
     league: "Slovenia - SKL",
     leagueType: "Pro",
@@ -330,7 +333,8 @@ export const bio = [
     homeState: null,
     homeCountry: "Israel",
     nationality: "Israel",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://hoopshype.com/wp-content/uploads/sites/92/2025/01/Screen-Shot-2025-01-21-at-11.47.19-PM.png?w=1000&h=600&crop=1",
     currentTeam: "Ratiopharm Ulm",
     league: "Germany - BBL",
     leagueType: "Pro",
@@ -389,7 +393,8 @@ export const bio = [
     homeState: "ON",
     homeCountry: "Canada",
     nationality: "Canada",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://fanarch.com/cdn/shop/collections/Untitled_design_12_68c9f144-e8b0-469c-b24c-51c64de9a14b.png?v=1700663970",
     currentTeam: "Illinois",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -448,7 +453,8 @@ export const bio = [
     homeState: "CA",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://d11rxijfksshz7.cloudfront.net/images/2024/8/28/CarterBryant.png?width=300",
     currentTeam: "Arizona",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -527,7 +533,8 @@ export const bio = [
     homeState: null,
     homeCountry: "France",
     nationality: "France",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.proballers.com/media/cache/resize_600_png/https---www.proballers.com/ul/player/noah-penda-buste2-1ef7cfc3-4739-6918-bcd6-fbc1555afb61.png",
     currentTeam: "Le Mans",
     league: "France - Pro A",
     leagueType: "Pro",
@@ -566,7 +573,8 @@ export const bio = [
     homeState: "MA",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1642284.png",
+    photoUrl:
+      "https://www.nbadraft.net/wp-content/uploads/2021/07/Alex-Karaban.png",
     currentTeam: "Connecticut",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -605,7 +613,8 @@ export const bio = [
     homeState: "MO",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641750.png",
+    photoUrl:
+      "https://www.usab.com/imgproxy/uV8AjU54Enf02wNEvAIvXwQwGapZ1eJ4oAJL7MwMzFc/rs:fit:3000:0:0/g:ce/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3VzYWItY29tLXByb2QvMjAyMS8wNi8wNzc5MzYzMi0xODQzLTQ5YmMtYjYzZC01ZWQwNWNiYTk0ZmMuanBn.png",
     currentTeam: "Creighton",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -744,7 +753,8 @@ export const bio = [
     homeState: "CA",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://a.espncdn.com/combiner/i?img=/i/headshots/mens-college-basketball/players/full/5107804.png&w=350&h=254",
     currentTeam: "San Diego St",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -763,7 +773,8 @@ export const bio = [
     homeState: "TN",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://a.espncdn.com/combiner/i?img=/i/headshots/mens-college-basketball/players/full/4700852.png&w=350&h=254",
     currentTeam: "Tennessee",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -802,7 +813,8 @@ export const bio = [
     homeState: "FL",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641780.png",
+    photoUrl:
+      "https://a.espncdn.com/i/headshots/mens-college-basketball/players/full/4433569.png",
     currentTeam: "Auburn",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -821,7 +833,8 @@ export const bio = [
     homeState: "TX",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.nbadraft.net/wp-content/uploads/2023/04/Dink-Pate-1.png",
     currentTeam: "Mexico City",
     league: "NBA G-League",
     leagueType: "G-League",
@@ -980,7 +993,8 @@ export const bio = [
     homeState: "NC",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.usab.com/imgproxy/RHT38PXEyA9SDsETFyCQ6gfyItjgZhhy-OTUGpXIvZo/rs:fit:3000:0:0/g:ce/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3VzYWItY29tLXByb2QvdXBsb2FkLzIwMjQvMDQvMTEvM2QzNzFjYzAtNDQ4Yy00NDU3LWE5NTgtNTA5OWNiYTlkYWRhLmpwZw.png",
     currentTeam: "Duke",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -1039,7 +1053,8 @@ export const bio = [
     homeState: null,
     homeCountry: "Senegal",
     nationality: "Senegal",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://www.proballers.com/media/cache/resize_600_png/https---www.proballers.com/ul/player/mouhamed-faye2-1ef9c597-1184-6248-81a7-6f365d6640fb.png",
     currentTeam: "Reggio Emilia",
     league: "Italy - Liga A",
     leagueType: "Pro",
@@ -1078,7 +1093,8 @@ export const bio = [
     homeState: "NJ",
     homeCountry: "Puerto Rico",
     nationality: "Dominican Republic",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641825.png",
+    photoUrl:
+      "https://a.espncdn.com/combiner/i?img=/i/headshots/mens-college-basketball/players/full/5175737.png&w=350&h=254",
     currentTeam: "UAB",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -1097,7 +1113,8 @@ export const bio = [
     homeState: null,
     homeCountry: "Croatia",
     nationality: "Croatia",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1631244.png",
+    photoUrl:
+      "https://a.espncdn.com/combiner/i?img=/i/headshots/mens-college-basketball/players/full/5174665.png&w=350&h=254",
     currentTeam: "Arkansas",
     league: "NCAA D-I",
     leagueType: "NCAA",
@@ -1156,7 +1173,8 @@ export const bio = [
     homeState: null,
     homeCountry: "Trinidad and Tobago",
     nationality: "Trinidad and Tobago",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1641831.png",
+    photoUrl:
+      "https://www.proballers.com/media/cache/resize_600_png/https---www.proballers.com/ul/player/malique-lewis2-1ef89959-9c99-67e0-9aef-435496db61ba.png",
     currentTeam: "South East Melbourne",
     league: "Australia - NBL",
     leagueType: "Pro",
@@ -1175,7 +1193,8 @@ export const bio = [
     homeState: "NE",
     homeCountry: "USA",
     nationality: "USA",
-    photoUrl: "https://cdn.nba.com/headshots/nba/latest/1040x760/1642282.png",
+    photoUrl:
+      "https://a.espncdn.com/i/headshots/mens-college-basketball/players/full/4433281.png",
     currentTeam: "Wake Forest",
     league: "NCAA D-I",
     leagueType: "NCAA",

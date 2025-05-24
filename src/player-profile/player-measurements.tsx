@@ -18,7 +18,6 @@ export default function PlayerMeasurements({ playerId }: Props) {
         : "N/A",
     ],
     ["Height (Shoes)", `${(data.heightShoes / 12).toFixed(1)} ft`],
-
     [
       "Wingspan",
       data.wingspan != null ? `${(data.wingspan / 12).toFixed(1)} ft` : "N/A",
