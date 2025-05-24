@@ -7,11 +7,17 @@ import {
   TableRow,
 } from "@mui/material";
 
-type Props = {
-  stats: Record<string, number | string | null>[];
+interface Props {
+  stats: PlayerStat[];
   means: Record<string, number>;
   stdDevs: Record<string, number>;
-};
+  type: "basic" | "advanced";
+}
+
+interface PlayerStat {
+  Season: number | string;
+  [key: string]: string | number | null | undefined;
+}
 
 function getStatColorZ(
   value: number | null,
@@ -37,12 +43,54 @@ export default function PlayerSeasonStatsTable({
   stats,
   means,
   stdDevs,
+  type,
 }: Props) {
   if (!stats) return null;
 
-  const displayKeys = stats.length
-    ? Object.keys(stats[0]).filter((key) => key !== "playerId" && key !== "age")
-    : [];
+  const basicStats = [
+    "Season",
+    "GP",
+    "MP",
+    "PTS",
+    "FGM",
+    "FGA",
+    "FG%",
+    "3PM",
+    "3PA",
+    "3P%",
+    "FT",
+    "FTA",
+    "FTP",
+    "ORB",
+    "DRB",
+    "TRB",
+    "AST",
+    "STL",
+    "BLK",
+    "TOV",
+    "PF",
+  ];
+
+  const advancedStats = [
+    "Season",
+    "eFG%",
+    "FG2M",
+    "FG2A",
+    "FG2%",
+    "3P%",
+    "FT",
+    "FTA",
+    "ORB",
+    "DRB",
+    "TRB",
+    "AST",
+    "STL",
+    "BLK",
+    "TOV",
+    "PF",
+  ];
+
+  const displayKeys = type === "basic" ? basicStats : advancedStats;
 
   const noColorKeys = new Set(["Season", "w", "l"]);
 
@@ -63,7 +111,7 @@ export default function PlayerSeasonStatsTable({
             {stats.map((seasonStats, idx) => (
               <TableRow key={idx}>
                 {displayKeys.map((key) => {
-                  const raw = seasonStats[key];
+                  const raw = seasonStats[key] ?? null;
                   const value = typeof raw === "number" ? raw : null;
                   const mean = means[key];
                   const stdDev = stdDevs[key];

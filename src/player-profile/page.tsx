@@ -15,14 +15,20 @@ import PlayerSeasonStatsTable from "./PlayerSeasonStatsTable";
 import Header from "../components/header";
 import AddReportDialog from "../components/add-report-dialog";
 import { scoutingReports as initialReports } from "../data/scouting-reports";
+import PlayerMeasurements from "./player-measurements";
 
 export default function PlayerProfile() {
   const { name } = useParams();
   const decodedName = decodeURIComponent(name || "");
   const player = bio.find((p) => p.name === decodedName);
   const [reports, setReports] = useState(initialReports);
+  const [seasonStatType, setSeasonStatType] = useState<"basic" | "advanced">(
+    "basic"
+  );
 
-  const [view, setView] = useState<"season" | "game">("season");
+  const [view, setView] = useState<"season" | "game" | "measurements">(
+    "season"
+  );
   function calculateAge(birthDateStr: string): number {
     const birthDate = new Date(birthDateStr);
     const today = new Date();
@@ -231,22 +237,65 @@ export default function PlayerProfile() {
             >
               Game Log
             </ToggleButton>
+            <ToggleButton
+              value="measurements"
+              className={`px-6 py-2 font-semibold transition-all duration-200 border border-[#CBD5E1] ${
+                view === "measurements"
+                  ? "bg-white text-[#0C2340]"
+                  : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
+              }`}
+            >
+              Measurements
+            </ToggleButton>
           </ToggleButtonGroup>
+          {view === "season" && (
+            <Box className="mt-4 mb-6">
+              <ToggleButtonGroup
+                value={seasonStatType}
+                exclusive
+                onChange={(_, val) => val && setSeasonStatType(val)}
+                className="rounded-xl shadow border border-[#CBD5E1] bg-[#F8FAFC]"
+              >
+                <ToggleButton
+                  value="basic"
+                  className={`px-4 py-1 font-semibold text-sm border border-[#CBD5E1] ${
+                    seasonStatType === "basic"
+                      ? "bg-white text-[#0C2340]"
+                      : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
+                  }`}
+                >
+                  Basic Stats
+                </ToggleButton>
+                <ToggleButton
+                  value="advanced"
+                  className={`px-4 py-1 font-semibold text-sm border border-[#CBD5E1] ${
+                    seasonStatType === "advanced"
+                      ? "bg-white text-[#0C2340]"
+                      : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
+                  }`}
+                >
+                  Advanced Stats
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          )}
         </Box>
 
         <Box className="bg-[#1D2D50] text-white rounded-xl shadow-lg p-6">
-          {view === "season" ? (
-            seasonStats && (
-              <PlayerSeasonStatsTable
-                stats={seasonLogs.filter((s) => s.playerId === player.playerId)}
-                means={means}
-                stdDevs={stdDevs}
-              />
-            )
-          ) : (
-            <PlayerGameLogTable gameLogs={playerGameLogs} />
+          {view === "season" && seasonStats && (
+            <PlayerSeasonStatsTable
+              stats={seasonLogs.filter((s) => s.playerId === player.playerId)}
+              means={means}
+              stdDevs={stdDevs}
+              type={seasonStatType}
+            />
+          )}
+          {view === "game" && <PlayerGameLogTable gameLogs={playerGameLogs} />}
+          {view === "measurements" && (
+            <PlayerMeasurements playerId={player.playerId} />
           )}
         </Box>
+
         <Box className="mt-10 space-y-4">
           <Typography variant="h5" className="text-white font-semibold">
             Scouting Reports
