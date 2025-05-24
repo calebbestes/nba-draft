@@ -148,7 +148,7 @@ export default function PlayerProfile() {
                 component="img"
                 src={player.photoUrl}
                 alt={`${player.name} headshot`}
-                className="w-40 h-40 md:w-52 md:h-52 rounded-2xl object-cover border-4 border-[#00A3E0]/20 shadow-xl"
+                className="w-52 h-52 md:w-72 md:h-72 rounded-2xl object-cover border-4 border-[#00A3E0]/20 shadow-xl"
               />
             )}
             <Box className="flex-1 text-center md:text-left space-y-3">

@@ -374,17 +374,42 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Opponent</TableCell>
-                <TableCell>Result</TableCell>
-                <TableCell>MIN</TableCell>
+                <TableCell
+                  align="center"
+                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                >
+                  Date
+                </TableCell>
+                <TableCell
+                  align="center"
+                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                >
+                  Opponent
+                </TableCell>
+                <TableCell
+                  align="center"
+                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                >
+                  Result
+                </TableCell>
+                <TableCell
+                  align="center"
+                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                >
+                  MIN
+                </TableCell>
                 {basicStatKeys.map((key) => (
-                  <TableCell key={key} align="right">
+                  <TableCell
+                    key={key}
+                    align="center"
+                    className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                  >
                     {basicStatLabels[key]}
                   </TableCell>
                 ))}
               </TableRow>
             </TableHead>
+
             <TableBody>
               {processedLogs.map((log, idx) => (
                 <TableRow key={idx}>

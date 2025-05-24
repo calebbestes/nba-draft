@@ -9,7 +9,7 @@ import {
   Autocomplete,
   TextField,
 } from "@mui/material";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { bio } from "../data/bio";
 import { game_logs } from "../data/game-logs";
 import { seasonLogs } from "../data/season-logs";
@@ -18,8 +18,11 @@ import PlayerGameLogTable from "../player-profile/game-log-chart";
 import PlayerSeasonStatsTable from "../player-profile/PlayerSeasonStatsTable";
 import StarButton from "../components/star";
 import Footer from "../components/footer";
+import { useNavigate } from "react-router-dom"; // <-- NEW
 
 export default function PlayerComparison() {
+  const navigate = useNavigate();
+
   const [searchParams] = useSearchParams();
   const initialIds = useMemo(() => {
     const param = searchParams.get("players");
@@ -92,6 +95,14 @@ export default function PlayerComparison() {
         Player Comparison
       </Typography>
 
+      <Box className="mb-4">
+        <button
+          onClick={() => navigate("/")}
+          className="text-sm font-semibold text-white bg-[#00A3E0] hover:bg-[#007ab8] px-4 py-2 rounded-lg"
+        >
+          ← Back to Home
+        </button>
+      </Box>
       <Box className="max-w-xl mx-auto mb-6">
         <Autocomplete
           options={players}
@@ -155,9 +166,20 @@ export default function PlayerComparison() {
               className="bg-white/5 border border-white/20 p-6 rounded-xl"
             >
               <Box className="flex justify-between items-center mb-2">
-                <Typography variant="h6" className="text-[#00A3E0]">
-                  {bio.find((p) => p.playerId === playerId)?.name}
-                </Typography>
+                {(() => {
+                  const player = bio.find((p) => p.playerId === playerId);
+                  if (!player) return null;
+                  const profileUrl = `/player/${encodeURIComponent(player.name)}`;
+                  return (
+                    <Link
+                      to={profileUrl}
+                      className="text-[#00A3E0] hover:underline font-semibold"
+                    >
+                      <Typography variant="h6">{player.name}</Typography>
+                    </Link>
+                  );
+                })()}
+
                 <StarButton
                   isStarred={true}
                   onToggle={() =>
