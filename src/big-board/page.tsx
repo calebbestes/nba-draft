@@ -137,14 +137,14 @@ export default function BigBoard() {
           {starred.size > 0 && (
             <div className="w-full flex justify-center items-center">
               <button
-                disabled={starred.size > 3}
+                disabled={starred.size > 5}
                 onClick={() => {
-                  const ids = [...starred].slice(0, 3);
+                  const ids = [...starred].slice(0, 5);
                   navigate(`/compare?players=${ids.join(",")}`);
                 }}
                 className={`px-8 py-3 text-lg font-bold text-white rounded-2xl transition-all duration-300 ease-in-out
         ${
-          starred.size > 3
+          starred.size > 5
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-gradient-to-r from-[#007A33] to-[#00B140] hover:from-[#006326] hover:to-[#009933] shadow-xl hover:shadow-2xl"
         }

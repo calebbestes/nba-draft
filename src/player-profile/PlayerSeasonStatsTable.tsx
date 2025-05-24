@@ -5,6 +5,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
 
 interface Props {
@@ -18,6 +19,40 @@ interface PlayerStat {
   League?: string;
   [key: string]: string | number | null | undefined;
 }
+const statDescriptions: Record<string, string> = {
+  Season: "Season Year",
+  GP: "Games Played",
+  MP: "Minutes Per Game",
+  PTS: "Points Per Game",
+  FGM: "Field Goals Made",
+  FGA: "Field Goals Attempted",
+  "FG%": "Field Goal Percentage",
+  "3PM": "Three-Point Field Goals Made",
+  "3PA": "Three-Point Field Goals Attempted",
+  "3P%": "Three-Point Percentage",
+  FT: "Free Throws Made",
+  FTA: "Free Throws Attempted",
+  FTP: "Free Throw Percentage",
+  ORB: "Offensive Rebounds",
+  DRB: "Defensive Rebounds",
+  TRB: "Total Rebounds",
+  AST: "Assists",
+  STL: "Steals",
+  BLK: "Blocks",
+  TOV: "Turnovers",
+  PF: "Personal Fouls",
+  "TS%": "True Shooting Percentage",
+  "eFG%": "Effective Field Goal Percentage",
+  PPS: "Points Per Shot",
+  FTr: "Free Throw Rate",
+  "3PAr": "Three-Point Attempt Rate",
+  "AST/MP": "Assists Per Minute",
+  "TRB/MP": "Rebounds Per Minute",
+  "ORB/MP": "Offensive Rebounds Per Minute",
+  "DRB/MP": "Defensive Rebounds Per Minute",
+  "TOV%": "Turnover Percentage",
+  "Game Score": "John Hollinger's Game Score Metric",
+};
 
 function getStatColorZ(
   value: number | null,
@@ -205,16 +240,23 @@ export default function PlayerSeasonStatsTable({
           <TableHead>
             <TableRow>
               {displayKeys.map((key) => (
-                <TableCell
+                <Tooltip
                   key={key}
-                  align="center"
-                  className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                  title={statDescriptions[key] || key}
+                  placement="top"
+                  arrow
                 >
-                  {key}
-                </TableCell>
+                  <TableCell
+                    align="center"
+                    className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                  >
+                    {key}
+                  </TableCell>
+                </Tooltip>
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
             {mergedStats.map((originalStats, idx) => {
               const seasonStats =
@@ -241,20 +283,32 @@ export default function PlayerSeasonStatsTable({
                         : "transparent";
 
                     return (
-                      <TableCell
-                        key={key}
-                        align="center"
-                        className={`text-sm py-3 border-b border-white/5 font-medium
-              ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
-            `}
-                        style={{ backgroundColor: bgColor }}
+                      <Tooltip
+                        title={
+                          typeof mean === "number"
+                            ? `Average for draft class is ${key === "GP" ? Math.round(mean) : mean.toFixed(1)}`
+                            : ""
+                        }
+                        arrow
+                        placement="top"
                       >
-                        {typeof raw === "number"
-                          ? key === "Season"
-                            ? Math.round(raw)
-                            : raw.toFixed(2)
-                          : (raw ?? "-")}
-                      </TableCell>
+                        <TableCell
+                          key={key}
+                          align="center"
+                          className={`text-sm py-3 border-b border-white/5 font-medium
+      ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
+    `}
+                          style={{ backgroundColor: bgColor }}
+                        >
+                          {typeof raw === "number"
+                            ? key === "Season"
+                              ? Math.round(raw)
+                              : key === "GP"
+                                ? Math.round(raw)
+                                : raw.toFixed(1)
+                            : (raw ?? "-")}
+                        </TableCell>
+                      </Tooltip>
                     );
                   })}
                 </TableRow>

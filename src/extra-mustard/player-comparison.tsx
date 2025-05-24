@@ -128,9 +128,10 @@ export default function PlayerComparison() {
       if (prev.includes(playerId)) {
         return prev.filter((id) => id !== playerId);
       }
-      if (prev.length >= 3) {
+      if (prev.length >= 5) {
         return [...prev.slice(1), playerId];
       }
+
       return [...prev, playerId];
     });
   };
@@ -152,7 +153,7 @@ export default function PlayerComparison() {
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Add Player (max 3)"
+              label="Add Player (max 5)"
               variant="outlined"
               className="bg-black/10 rounded-xl"
               sx={{

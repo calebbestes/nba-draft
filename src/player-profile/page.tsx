@@ -91,20 +91,23 @@ export default function PlayerProfile() {
       ? game_logs.filter((g) => g.playerId === player.playerId)
       : [];
   }, [player]);
-
   const { means, stdDevs } = useMemo(() => {
-    const allStats = seasonLogs.filter((s) => s !== null);
+    const filteredStats = seasonLogs.filter((s) => {
+      const gp = Number(s.GP);
+      return !isNaN(gp) && gp >= 15;
+    });
+
     const means: Record<string, number> = {};
     const stdDevs: Record<string, number> = {};
 
-    if (!allStats.length) return { means, stdDevs };
+    if (!filteredStats.length) return { means, stdDevs };
 
-    Object.keys(allStats[0] || {}).forEach((key) => {
+    Object.keys(filteredStats[0] || {}).forEach((key) => {
       if (key === "playerId" || key === "age") return;
 
-      const values = allStats
+      const values = filteredStats
         .map((s) => s[key as keyof typeof s])
-        .filter((v): v is number => v !== null);
+        .filter((v): v is number => v !== null && typeof v === "number");
 
       if (!values.length) return;
 
