@@ -13,9 +13,9 @@ interface Props {
   stdDevs: Record<string, number>;
   type: "basic" | "advanced";
 }
-
 interface PlayerStat {
   Season: number | string;
+  League?: string;
   [key: string]: string | number | null | undefined;
 }
 
@@ -31,18 +31,116 @@ function getStatColorZ(
   if (z >= 1.5) return "rgba(0, 128, 0, 0.15)";
   if (z >= 1.0) return "rgba(0, 160, 0, 0.1)";
   if (z >= 0.5) return "rgba(0, 200, 0, 0.05)";
-  if (z >= 1.5) return "rgba(0, 128, 0, 0.15)";
-  if (z >= 1.0) return "rgba(0, 160, 0, 0.1)";
-  if (z >= 0.5) return "rgba(0, 200, 0, 0.05)";
-
-  if (z <= -1.5) return "rgba(200, 0, 0, 0.15)";
-  if (z <= -1.0) return "rgba(220, 50, 0, 0.1)";
-  if (z <= -0.5) return "rgba(240, 100, 0, 0.05)";
   if (z <= -1.5) return "rgba(200, 0, 0, 0.15)";
   if (z <= -1.0) return "rgba(220, 50, 0, 0.1)";
   if (z <= -0.5) return "rgba(240, 100, 0, 0.05)";
 
   return "transparent";
+}
+function groupAndFilterStatsWithLeagues(stats: PlayerStat[]) {
+  const seasonGroups: Record<string, PlayerStat[]> = {};
+  const skippedLeagues: Set<string> = new Set();
+  const mergedStats: PlayerStat[] = [];
+
+  // Group stats by Season
+  for (const stat of stats) {
+    const season = stat.Season?.toString();
+    if (!season) continue;
+    if (!seasonGroups[season]) seasonGroups[season] = [];
+    seasonGroups[season].push(stat);
+
+    // Track any league under 15 GP individually
+    const gp = Number(stat.GP) || 0;
+    if (gp < 15 && stat.League) {
+      skippedLeagues.add(stat.League.toString());
+    }
+  }
+
+  for (const [season, entries] of Object.entries(seasonGroups)) {
+    const totalGP = entries.reduce((sum, s) => sum + (Number(s.GP) || 0), 0);
+    if (totalGP < 15) continue;
+
+    const weightedStat: PlayerStat = { Season: Number(season) };
+    const numericKeys = Object.keys(entries[0]).filter(
+      (key) => typeof entries[0][key] === "number" && key !== "Season"
+    );
+
+    for (const key of numericKeys) {
+      const totalWeighted = entries.reduce((sum, s) => {
+        const gp = Number(s.GP) || 0;
+        const val = Number(s[key]) || 0;
+        return sum + val * gp;
+      }, 0);
+
+      weightedStat[key] = totalGP === 0 ? 0 : totalWeighted / totalGP;
+    }
+
+    weightedStat.GP = totalGP;
+    mergedStats.push(weightedStat);
+  }
+
+  // Sort by most recent season first
+  mergedStats.sort((a, b) => Number(b.Season) - Number(a.Season));
+
+  return { mergedStats, skippedLeagues: Array.from(skippedLeagues) };
+}
+
+function calculateAdvancedSeasonStats(row: PlayerStat): PlayerStat {
+  const fga = Number(row["FGA"]) || 0;
+  const fta = Number(row["FTA"]) || 0;
+  const pts = Number(row["PTS"]) || 0;
+
+  const ast = Number(row["AST"]) || 0;
+  const mp = Number(row["MP"]) || 1;
+  const trb = Number(row["TRB"]) || 0;
+  const orb = Number(row["ORB"]) || 0;
+  const drb = Number(row["DRB"]) || 0;
+  const tov = Number(row["TOV"]) || 0;
+  const ft = Number(row["FT"]) || 0;
+  const fgm = Number(row["FGM"]) || 0;
+  const stl = Number(row["STL"]) || 0;
+  const blk = Number(row["BLK"]) || 0;
+  const pf = Number(row["PF"]) || 0;
+
+  const ts =
+    fga + 0.44 * fta !== 0 ? (pts / (2 * (fga + 0.44 * fta))) * 100 : null;
+  const pps = fga !== 0 ? pts / fga : null;
+  const ftr = fga !== 0 ? fta / fga : null;
+  const threePar = fga !== 0 ? (Number(row["3PA"]) || 0) / fga : null;
+  const astPerMin = mp !== 0 ? ast / mp : null;
+  const trbPerMin = mp !== 0 ? trb / mp : null;
+  const orbPerMin = mp !== 0 ? orb / mp : null;
+  const drbPerMin = mp !== 0 ? drb / mp : null;
+  const tovPct =
+    fga + 0.44 * fta + tov !== 0
+      ? (tov / (fga + 0.44 * fta + tov)) * 100
+      : null;
+  const gameScore =
+    pts +
+    0.4 * fgm -
+    0.7 * fga -
+    0.4 * (fta - ft) +
+    0.7 * orb +
+    0.3 * drb +
+    stl +
+    0.7 * ast +
+    0.7 * blk -
+    0.4 * pf -
+    tov;
+
+  return {
+    ...row,
+    "TS%": ts,
+    PPS: pps,
+    FTr: ftr,
+    "3PAr": threePar,
+    "AST/MP": astPerMin,
+    "TRB/MP": trbPerMin,
+    "ORB/MP": orbPerMin,
+    "DRB/MP": drbPerMin,
+    "TOV%": tovPct,
+    "Game Score": gameScore,
+  };
 }
 
 export default function PlayerSeasonStatsTable({
@@ -52,6 +150,8 @@ export default function PlayerSeasonStatsTable({
   type,
 }: Props) {
   if (!stats) return null;
+
+  const { mergedStats, skippedLeagues } = groupAndFilterStatsWithLeagues(stats);
 
   const basicStats = [
     "Season",
@@ -79,21 +179,17 @@ export default function PlayerSeasonStatsTable({
 
   const advancedStats = [
     "Season",
+    "TS%",
     "eFG%",
-    "FG2M",
-    "FG2A",
-    "FG2%",
-    "3P%",
-    "FT",
-    "FTA",
-    "ORB",
-    "DRB",
-    "TRB",
-    "AST",
-    "STL",
-    "BLK",
-    "TOV",
-    "PF",
+    "PPS",
+    "FTr",
+    "3PAr",
+    "AST/MP",
+    "TRB/MP",
+    "ORB/MP",
+    "DRB/MP",
+    "TOV%",
+    "Game Score",
   ];
 
   const displayKeys = type === "basic" ? basicStats : advancedStats;
@@ -120,45 +216,58 @@ export default function PlayerSeasonStatsTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {stats.map((seasonStats, idx) => (
-              <TableRow
-                key={idx}
-                className="transition-colors hover:bg-white/5"
-              >
-                {displayKeys.map((key) => {
-                  const raw = seasonStats[key] ?? null;
-                  const value = typeof raw === "number" ? raw : null;
-                  const mean = means[key];
-                  const stdDev = stdDevs[key];
-                  const bgColor =
-                    !noColorKeys.has(key) &&
-                    value !== null &&
-                    typeof mean === "number" &&
-                    typeof stdDev === "number"
-                      ? getStatColorZ(value, mean, stdDev)
-                      : "transparent";
+            {mergedStats.map((originalStats, idx) => {
+              const seasonStats =
+                type === "advanced"
+                  ? calculateAdvancedSeasonStats(originalStats)
+                  : originalStats;
 
-                  return (
-                    <TableCell
-                      key={key}
-                      align="center"
-                      className={`text-sm py-3 border-b border-white/5 font-medium
-                        ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
-                      `}
-                      style={{ backgroundColor: bgColor }}
-                    >
-                      {typeof raw === "number"
-                        ? key === "Season"
-                          ? Math.round(raw)
-                          : raw.toFixed(1)
-                        : (raw ?? "-")}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
+              return (
+                <TableRow
+                  key={idx}
+                  className="transition-colors hover:bg-white/5"
+                >
+                  {displayKeys.map((key) => {
+                    const raw = seasonStats[key] ?? null;
+                    const value = typeof raw === "number" ? raw : null;
+                    const mean = means[key];
+                    const stdDev = stdDevs[key];
+                    const bgColor =
+                      !noColorKeys.has(key) &&
+                      value !== null &&
+                      typeof mean === "number" &&
+                      typeof stdDev === "number"
+                        ? getStatColorZ(value, mean, stdDev)
+                        : "transparent";
+
+                    return (
+                      <TableCell
+                        key={key}
+                        align="center"
+                        className={`text-sm py-3 border-b border-white/5 font-medium
+              ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
+            `}
+                        style={{ backgroundColor: bgColor }}
+                      >
+                        {typeof raw === "number"
+                          ? key === "Season"
+                            ? Math.round(raw)
+                            : raw.toFixed(2)
+                          : (raw ?? "-")}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
+        {skippedLeagues.length > 0 && (
+          <div className="text-xs text-blue/60 mt-2 px-4">
+            * Season stats do not include competitions in{" "}
+            {skippedLeagues.join(", ")}
+          </div>
+        )}
       </div>
     </Paper>
   );

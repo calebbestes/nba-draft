@@ -17,11 +17,30 @@ import AddReportDialog from "../components/add-report-dialog";
 import { scoutingReports as initialReports } from "../data/scouting-reports";
 import PlayerMeasurements from "./player-measurements";
 import { getSpecialtyMap } from "../utils/get-player-specialties";
+import StarButton from "../components/star";
 
 export default function PlayerProfile() {
   const { name } = useParams();
   const decodedName = decodeURIComponent(name || "");
   const player = bio.find((p) => p.name === decodedName);
+  const [starred, setStarred] = useState<Set<number>>(() => {
+    const stored = localStorage.getItem("starredPlayers");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
+
+  function toggleStar(playerId: number) {
+    setStarred((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(playerId)) {
+        newSet.delete(playerId);
+      } else {
+        newSet.add(playerId);
+      }
+      localStorage.setItem("starredPlayers", JSON.stringify([...newSet]));
+      return newSet;
+    });
+  }
+
   const [reports, setReports] = useState(initialReports);
   const [seasonStatType, setSeasonStatType] = useState<"basic" | "advanced">(
     "basic"
@@ -132,10 +151,11 @@ export default function PlayerProfile() {
               <Box className="flex flex-col md:flex-row justify-between items-center md:items-start gap-4">
                 <Typography
                   variant="h3"
-                  className="font-bebas text-white tracking-wide text-4xl md:text-5xl uppercase drop-shadow-lg"
+                  className="font-bebas text-white tracking-wide text-4xl md:text-5xl uppercase drop-shadow-[0_3px_6px_rgba(0,0,0,0.9)]"
                 >
                   {player.name}
                 </Typography>
+
                 <Box className="flex gap-4 flex-wrap justify-center md:justify-start">
                   <a
                     href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
@@ -153,6 +173,10 @@ export default function PlayerProfile() {
                   >
                     + Add Report
                   </button>
+                  <StarButton
+                    isStarred={starred.has(player.playerId)}
+                    onToggle={() => toggleStar(player.playerId)}
+                  />
                 </Box>
 
                 <AddReportDialog
@@ -205,7 +229,8 @@ export default function PlayerProfile() {
                     Hometown
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {player.homeTown}, {player.homeState}
+                    {player.homeTown}
+                    {player.homeState ? `, ${player.homeState}` : ""}
                   </Typography>
                 </div>
                 <div>
@@ -311,9 +336,23 @@ export default function PlayerProfile() {
           <Typography variant="h5" className="text-white font-semibold">
             Scouting Reports
           </Typography>
-          {reports
-            .filter((r) => r.playerId === player.playerId)
-            .map((r) => (
+          {(() => {
+            const playerReports = reports.filter(
+              (r) => r.playerId === player.playerId
+            );
+
+            if (playerReports.length === 0) {
+              return (
+                <Typography
+                  variant="body1"
+                  className="text-[#CBD5E1] italic text-sm mt-2 mb-6"
+                >
+                  No scouting reports for this player yet.
+                </Typography>
+              );
+            }
+
+            return playerReports.map((r) => (
               <Paper
                 key={r.reportId}
                 className="p-4 bg-white/10 border border-white/20 rounded-xl text-white shadow-md"
@@ -328,7 +367,8 @@ export default function PlayerProfile() {
                   {r.report}
                 </Typography>
               </Paper>
-            ))}
+            ));
+          })()}
         </Box>
       </Box>
     </Box>

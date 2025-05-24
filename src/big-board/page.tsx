@@ -7,9 +7,8 @@ import {
   type Specialty,
 } from "../utils/get-player-specialties";
 import Header from "../components/header";
-import StarIcon from "@mui/icons-material/Star";
-import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { useNavigate } from "react-router-dom";
+import StarButton from "../components/star";
 
 const rankingSources = [
   "Average Rank",
@@ -270,21 +269,10 @@ export default function BigBoard() {
               >
                 <div className="relative">
                   <div className="absolute top-4 right-4 z-10">
-                    <Tooltip title="Watch this player" arrow placement="top">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // prevent card click
-                          toggleStar(player.playerId);
-                        }}
-                        className="text-yellow-400 hover:text-yellow-300 transition"
-                      >
-                        {starred.has(player.playerId) ? (
-                          <StarIcon fontSize="medium" />
-                        ) : (
-                          <StarBorderIcon fontSize="medium" />
-                        )}
-                      </button>
-                    </Tooltip>
+                    <StarButton
+                      isStarred={starred.has(player.playerId)}
+                      onToggle={() => toggleStar(player.playerId)}
+                    />
                   </div>
                   <div className="absolute top-4 left-4 z-10">
                     {typeof rank === "number" && isFinite(rank) ? (
@@ -306,7 +294,7 @@ export default function BigBoard() {
                                 </div>
                               ))}
                             {outlierType === "high" && (
-                              <div className="text-yellow-300 font-semibold pt-1">
+                              <div className="text-green-300 font-semibold pt-1">
                                 ⭐ This scout ranked them significantly higher
                                 than others
                               </div>
@@ -326,7 +314,7 @@ export default function BigBoard() {
                           className={`w-12 h-12 flex items-center justify-center rounded-full font-extrabold text-lg shadow-md hover:shadow-lg transition cursor-help
         ${
           outlierType === "high"
-            ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+            ? "bg-green-500 hover:bg-green-600 text-white"
             : outlierType === "low"
               ? "bg-red-600 hover:bg-red-700 text-white"
               : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
