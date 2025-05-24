@@ -241,7 +241,6 @@ function getStatColorZ(value: number, mean: number, stdDev: number): string {
 
 export default function PlayerGameLogTable({ gameLogs }: Props) {
   const [statView, setStatView] = useState<"advanced" | "basic">("basic");
-
   const processedLogs = useMemo(() => {
     return gameLogs.map((log) => {
       const playerStats: PlayerStats = {
@@ -308,31 +307,50 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Game Log – {statView === "advanced" ? "Advanced" : "Basic"} Stats
-      </Typography>
+      <Box className="flex items-center justify-between mb-6">
+        <Typography variant="h6" className="text-white font-semibold">
+          Game Log – {statView === "advanced" ? "Advanced" : "Basic"} Stats
+        </Typography>
 
-      <ToggleButtonGroup
-        value={statView}
-        exclusive
-        onChange={(_, val) => val && setStatView(val)}
-        size="small"
-        sx={{ mb: 2 }}
-        className="rounded-xl shadow-xl border border-[#CBD5E1] bg-[#F8FAFC]"
-      >
-        <ToggleButton value="basic">Basic Stats</ToggleButton>
-        <ToggleButton value="advanced">Advanced Stats</ToggleButton>
-      </ToggleButtonGroup>
+        <ToggleButtonGroup
+          value={statView}
+          exclusive
+          onChange={(_, val) => val && setStatView(val)}
+          size="small"
+          className="rounded-xl shadow border border-white/10"
+        >
+          <ToggleButton 
+            value="basic"
+            className="px-4 py-1.5 text-sm font-medium text-white/90 hover:bg-white/5"
+          >
+            Basic Stats
+          </ToggleButton>
+          <ToggleButton 
+            value="advanced"
+            className="px-4 py-1.5 text-sm font-medium text-white/90 hover:bg-white/5"
+          >
+            Advanced Stats
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} className="rounded-xl overflow-hidden border border-white/10">
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Opponent</TableCell>
+              <TableCell className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10">
+                Date
+              </TableCell>
+              <TableCell className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10">
+                Opponent
+              </TableCell>
               {(statView === "advanced" ? statKeys : basicStatKeys).map(
                 (key) => (
-                  <TableCell key={key} align="right">
+                  <TableCell 
+                    key={key} 
+                    align="right"
+                    className="text-[#B8C4CA] font-semibold text-sm py-4 bg-[#0C2340]/40 border-b border-white/10"
+                  >
                     {
                       (statView === "advanced" ? statLabels : basicStatLabels)[
                         key
@@ -345,14 +363,19 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
           </TableHead>
           <TableBody>
             {processedLogs.map((log, idx) => (
-              <TableRow key={idx}>
-                <TableCell>
+              <TableRow 
+                key={idx}
+                className="transition-colors hover:bg-white/5"
+              >
+                <TableCell className="text-[#00A3E0] font-medium text-sm py-3 border-b border-white/5">
                   {new Date(log.date).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                   })}
                 </TableCell>
-                <TableCell>{log.opponent ?? "-"}</TableCell>
+                <TableCell className="text-white/90 font-medium text-sm py-3 border-b border-white/5">
+                  {log.opponent ?? "-"}
+                </TableCell>
                 {(statView === "advanced" ? statKeys : basicStatKeys).map(
                   (key) => {
                     const value = log[key];
@@ -367,7 +390,8 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
                       <TableCell
                         key={key}
                         align="right"
-                        style={{ backgroundColor: bgColor, color: "#111" }}
+                        className="text-white/90 font-medium text-sm py-3 border-b border-white/5"
+                        style={{ backgroundColor: bgColor }}
                       >
                         {typeof value === "number"
                           ? value.toFixed(1)

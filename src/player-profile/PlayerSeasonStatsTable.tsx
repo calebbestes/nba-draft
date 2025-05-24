@@ -31,7 +31,13 @@ function getStatColorZ(
   if (z >= 1.5) return "rgba(0, 128, 0, 0.15)";
   if (z >= 1.0) return "rgba(0, 160, 0, 0.1)";
   if (z >= 0.5) return "rgba(0, 200, 0, 0.05)";
+  if (z >= 1.5) return "rgba(0, 128, 0, 0.15)";
+  if (z >= 1.0) return "rgba(0, 160, 0, 0.1)";
+  if (z >= 0.5) return "rgba(0, 200, 0, 0.05)";
 
+  if (z <= -1.5) return "rgba(200, 0, 0, 0.15)";
+  if (z <= -1.0) return "rgba(220, 50, 0, 0.1)";
+  if (z <= -0.5) return "rgba(240, 100, 0, 0.05)";
   if (z <= -1.5) return "rgba(200, 0, 0, 0.15)";
   if (z <= -1.0) return "rgba(220, 50, 0, 0.1)";
   if (z <= -0.5) return "rgba(240, 100, 0, 0.05)";

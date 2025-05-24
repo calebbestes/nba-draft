@@ -9,3 +9,7 @@ export default function ExtraMustard() {
     </>
   );
 }
+
+export default function ExtraMustard() {
+  return <PlayerComparison />;
+}
