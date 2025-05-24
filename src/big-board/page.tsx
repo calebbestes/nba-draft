@@ -9,6 +9,7 @@ import {
 import Header from "../components/header";
 import { useNavigate } from "react-router-dom";
 import StarButton from "../components/star";
+import Footer from "../components/footer";
 
 const rankingSources = [
   "Average Rank",
@@ -397,6 +398,7 @@ export default function BigBoard() {
           );
         })}
       </div>
+      <Footer />
     </div>
   );
 }

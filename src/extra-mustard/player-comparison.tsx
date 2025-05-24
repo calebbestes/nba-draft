@@ -1,107 +1,23 @@
 import { useState, useMemo } from "react";
-import { bio } from "../data/bio";
-import { measurements } from "../data/measurements";
-import { seasonLogs } from "../data/season-logs";
-import { Box, Autocomplete, TextField, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  Paper,
+  FormControl,
+  Autocomplete,
+  TextField,
+} from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-
-interface ComparisonStat {
-  label: string;
-  getValue: (playerId: number) => string | number | null;
-  type: "physical" | "performance" | "athletic";
-}
-
-const comparisonStats: ComparisonStat[] = [
-  {
-    label: "Height",
-    getValue: (playerId) => {
-      const player = bio.find((p) => p.playerId === playerId);
-      return player
-        ? `${Math.floor(player.height / 12)}'${player.height % 12}"`
-        : null;
-    },
-    type: "physical",
-  },
-  {
-    label: "Weight",
-    getValue: (playerId) => {
-      const player = bio.find((p) => p.playerId === playerId);
-      return player?.weight ? `${player.weight} lbs` : null;
-    },
-    type: "physical",
-  },
-  {
-    label: "Wingspan",
-    getValue: (playerId) => {
-      const measure = measurements.find((m) => m.playerId === playerId);
-      return measure?.wingspan
-        ? `${(measure.wingspan / 12).toFixed(1)}'`
-        : null;
-    },
-    type: "physical",
-  },
-  {
-    label: "Standing Reach",
-    getValue: (playerId) => {
-      const measure = measurements.find((m) => m.playerId === playerId);
-      return measure?.reach ? `${measure.reach}"` : null;
-    },
-    type: "physical",
-  },
-  {
-    label: "Max Vertical",
-    getValue: (playerId) => {
-      const measure = measurements.find((m) => m.playerId === playerId);
-      return measure?.maxVertical ? `${measure.maxVertical}"` : null;
-    },
-    type: "athletic",
-  },
-  {
-    label: "Sprint (3/4 court)",
-    getValue: (playerId) => {
-      const measure = measurements.find((m) => m.playerId === playerId);
-      return measure?.sprint ? `${measure.sprint}s` : null;
-    },
-    type: "athletic",
-  },
-  {
-    label: "Points",
-    getValue: (playerId) => {
-      const stats = seasonLogs.find((s) => s.playerId === playerId);
-      return stats?.PTS?.toFixed(1) ?? null;
-    },
-    type: "performance",
-  },
-  {
-    label: "Rebounds",
-    getValue: (playerId) => {
-      const stats = seasonLogs.find((s) => s.playerId === playerId);
-      return stats?.TRB?.toFixed(1) ?? null;
-    },
-    type: "performance",
-  },
-  {
-    label: "Assists",
-    getValue: (playerId) => {
-      const stats = seasonLogs.find((s) => s.playerId === playerId);
-      return stats?.AST?.toFixed(1) ?? null;
-    },
-    type: "performance",
-  },
-  {
-    label: "3P%",
-    getValue: (playerId) => {
-      const stats = seasonLogs.find((s) => s.playerId === playerId);
-      const value = stats?.["3P%"];
-      return value != null
-        ? value > 1
-          ? `${value.toFixed(1)}%`
-          : `${(value * 100).toFixed(1)}%`
-        : null;
-    },
-    type: "performance",
-  },
-];
+import { bio } from "../data/bio";
+import { game_logs } from "../data/game-logs";
+import { seasonLogs } from "../data/season-logs";
+import PlayerMeasurements from "../player-profile/player-measurements";
+import PlayerGameLogTable from "../player-profile/game-log-chart";
+import PlayerSeasonStatsTable from "../player-profile/PlayerSeasonStatsTable";
+import StarButton from "../components/star";
+import Footer from "../components/footer";
 
 export default function PlayerComparison() {
   const [searchParams] = useSearchParams();
@@ -111,6 +27,7 @@ export default function PlayerComparison() {
   }, [searchParams]);
 
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>(initialIds);
+  const [comparisonMode, setComparisonMode] = useState("Measurements");
 
   const players = useMemo(
     () =>
@@ -131,10 +48,40 @@ export default function PlayerComparison() {
       if (prev.length >= 5) {
         return [...prev.slice(1), playerId];
       }
-
       return [...prev, playerId];
     });
   };
+
+  const { means, stdDevs } = useMemo(() => {
+    const filteredStats = seasonLogs.filter((s) => {
+      const gp = Number(s.GP);
+      return !isNaN(gp) && gp >= 15;
+    });
+
+    const means: Record<string, number> = {};
+    const stdDevs: Record<string, number> = {};
+
+    if (!filteredStats.length) return { means, stdDevs };
+
+    Object.keys(filteredStats[0] || {}).forEach((key) => {
+      if (key === "playerId" || key === "age") return;
+
+      const values = filteredStats
+        .map((s) => s[key as keyof typeof s])
+        .filter((v): v is number => v !== null && typeof v === "number");
+
+      if (!values.length) return;
+
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      means[key] = mean;
+
+      const variance =
+        values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+      stdDevs[key] = Math.sqrt(variance);
+    });
+
+    return { means, stdDevs };
+  }, []);
 
   return (
     <Box className="min-h-screen bg-[#0C2340] text-white p-6">
@@ -145,7 +92,7 @@ export default function PlayerComparison() {
         Player Comparison
       </Typography>
 
-      <Box className="max-w-xl mx-auto mb-8">
+      <Box className="max-w-xl mx-auto mb-6">
         <Autocomplete
           options={players}
           getOptionLabel={(option) => option.label}
@@ -180,52 +127,79 @@ export default function PlayerComparison() {
         />
       </Box>
 
-      {selectedPlayers.length > 0 && (
-        <Paper className="max-w-4xl mx-auto bg-white/10 rounded-xl p-6 backdrop-blur-sm border border-white/20">
-          <Box
-            className="grid gap-4"
-            sx={{
-              gridTemplateColumns: `auto repeat(${selectedPlayers.length}, 1fr)`,
-              display: "grid",
-            }}
-          >
-            <Box className="font-semibold text-[#B8C4CA]">Stat</Box>
-            {selectedPlayers.map((playerId) => (
-              <Box key={playerId} className="font-semibold text-[#00A3E0]">
-                {bio.find((p) => p.playerId === playerId)?.name}
-              </Box>
-            ))}
+      <FormControl sx={{ mb: 6, minWidth: 240 }}>
+        <Select
+          value={comparisonMode}
+          onChange={(e) => setComparisonMode(e.target.value)}
+          sx={{
+            backgroundColor: "white",
+            color: "#002B5E",
+            fontWeight: 600,
+            borderRadius: "8px",
+          }}
+        >
+          <MenuItem value="Measurements">Measurements</MenuItem>
+          <MenuItem value="Advanced Trends">Game By Game</MenuItem>
+          <MenuItem value="Season Basic Stats">Season Basic Stats</MenuItem>
+          <MenuItem value="Season Advanced Stats">
+            Season Advanced Stats
+          </MenuItem>
+        </Select>
+      </FormControl>
 
-            {["physical", "athletic", "performance"].map((type) => (
-              <>
-                <Box
-                  key={type}
-                  className="col-span-full text-sm font-medium text-[#00A3E0] uppercase tracking-wider mt-4 mb-2"
-                >
-                  {type} Metrics
-                </Box>
-                {comparisonStats
-                  .filter((stat) => stat.type === type)
-                  .map((stat) => (
-                    <>
-                      <Box key={stat.label} className="text-[#B8C4CA]">
-                        {stat.label}
-                      </Box>
-                      {selectedPlayers.map((playerId) => (
-                        <Box
-                          key={`${stat.label}-${playerId}`}
-                          className="text-black"
-                        >
-                          {stat.getValue(playerId) ?? "-"}
-                        </Box>
-                      ))}
-                    </>
-                  ))}
-              </>
-            ))}
-          </Box>
-        </Paper>
+      {selectedPlayers.length > 0 && (
+        <Box className="flex flex-col gap-6">
+          {selectedPlayers.map((playerId) => (
+            <Paper
+              key={playerId}
+              className="bg-white/5 border border-white/20 p-6 rounded-xl"
+            >
+              <Box className="flex justify-between items-center mb-2">
+                <Typography variant="h6" className="text-[#00A3E0]">
+                  {bio.find((p) => p.playerId === playerId)?.name}
+                </Typography>
+                <StarButton
+                  isStarred={true}
+                  onToggle={() =>
+                    setSelectedPlayers((prev) =>
+                      prev.filter((id) => id !== playerId)
+                    )
+                  }
+                />
+              </Box>
+
+              {comparisonMode === "Measurements" && (
+                <PlayerMeasurements playerId={playerId} />
+              )}
+
+              {comparisonMode === "Advanced Trends" && (
+                <PlayerGameLogTable
+                  gameLogs={game_logs.filter((g) => g.playerId === playerId)}
+                />
+              )}
+
+              {comparisonMode === "Season Basic Stats" && (
+                <PlayerSeasonStatsTable
+                  stats={seasonLogs.filter((s) => s.playerId === playerId)}
+                  means={means}
+                  stdDevs={stdDevs}
+                  type="basic"
+                />
+              )}
+
+              {comparisonMode === "Season Advanced Stats" && (
+                <PlayerSeasonStatsTable
+                  stats={seasonLogs.filter((s) => s.playerId === playerId)}
+                  means={means}
+                  stdDevs={stdDevs}
+                  type="advanced"
+                />
+              )}
+            </Paper>
+          ))}
+        </Box>
       )}
+      <Footer />
     </Box>
   );
 }

@@ -1,56 +1,109 @@
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper, Tooltip } from "@mui/material";
 import { measurements } from "../data/measurements";
 
 interface Props {
   playerId: number;
 }
 
+const fields: {
+  label: string;
+  key: keyof (typeof measurements)[number];
+  format: (val: number) => string;
+}[] = [
+  {
+    label: "Height (No Shoes)",
+    key: "heightNoShoes",
+    format: (v) => `${(v / 12).toFixed(1)} ft`,
+  },
+  {
+    label: "Height (Shoes)",
+    key: "heightShoes",
+    format: (v) => `${(v / 12).toFixed(1)} ft`,
+  },
+  {
+    label: "Wingspan",
+    key: "wingspan",
+    format: (v) => `${(v / 12).toFixed(1)} ft`,
+  },
+  { label: "Standing Reach", key: "reach", format: (v) => `${v} in` },
+  { label: "Max Vertical", key: "maxVertical", format: (v) => `${v} in` },
+  {
+    label: "No Step Vertical",
+    key: "noStepVertical",
+    format: (v) => `${v} in`,
+  },
+  { label: "Weight", key: "weight", format: (v) => `${v} lbs` },
+  { label: "Body Fat %", key: "bodyFat", format: (v) => `${v.toFixed(1)}%` },
+  { label: "Hand Length", key: "handLength", format: (v) => `${v} in` },
+  { label: "Hand Width", key: "handWidth", format: (v) => `${v} in` },
+  { label: "Lane Agility", key: "agility", format: (v) => `${v} sec` },
+  { label: "Sprint (3/4 court)", key: "sprint", format: (v) => `${v} sec` },
+  { label: "Shuttle Best", key: "shuttleBest", format: (v) => `${v}` },
+];
+
 export default function PlayerMeasurements({ playerId }: Props) {
   const data = measurements.find((m) => m.playerId === playerId);
-
   if (!data) return null;
 
-  const rows: [string, string | number | null][] = [
-    [
-      "Height (No Shoes)",
-      data.heightNoShoes != null
-        ? `${(data.heightNoShoes / 12).toFixed(1)} ft`
-        : "N/A",
-    ],
-    ["Height (Shoes)", `${(data.heightShoes / 12).toFixed(1)} ft`],
-    [
-      "Wingspan",
-      data.wingspan != null ? `${(data.wingspan / 12).toFixed(1)} ft` : "N/A",
-    ],
-    ["Standing Reach", `${data.reach} in`],
-    ["Max Vertical", `${data.maxVertical} in`],
-    ["No Step Vertical", `${data.noStepVertical} in`],
-    ["Weight", `${data.weight} lbs`],
-    ["Body Fat %", data.bodyFat ?? "N/A"],
-    ["Hand Length", `${data.handLength} in`],
-    ["Hand Width", `${data.handWidth} in`],
-    ["Lane Agility", `${data.agility} sec`],
-    ["Sprint (3/4 court)", `${data.sprint} sec`],
-    ["Shuttle Best", data.shuttleBest ?? "N/A"],
-  ];
+  const averages: Record<string, number> = {};
+  fields.forEach(({ key }) => {
+    const values = measurements
+      .map((m) => m[key])
+      .filter((v): v is number => typeof v === "number");
+
+    if (values.length) {
+      averages[key] = values.reduce((a, b) => a + b, 0) / values.length;
+    }
+  });
 
   return (
-    <Box className="mt-10">
+    <Box className="">
       <Typography variant="h5" className="text-white font-semibold mb-3">
         Combine Measurements
       </Typography>
-      <Paper className="p-4 bg-white/10 border border-white/20 rounded-xl text-white shadow-md">
-        <Box className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {rows.map(([label, value]) => (
-            <div key={label}>
-              <Typography variant="body2" className="text-[#A0AEC0]">
-                {label}
-              </Typography>
-              <Typography className="text-[#00A3E0] font-medium">
-                {value}
-              </Typography>
-            </div>
-          ))}
+      <Paper className="p-4 bg-white/10 border border-white/20 rounded-xl text-white shadow-md overflow-x-auto">
+        <Box
+          sx={{
+            display: "grid",
+            gridAutoFlow: {
+              xs: "row",
+              md: "column",
+            },
+            gridAutoRows: {
+              xs: "auto",
+              md: "1fr",
+            },
+            gridTemplateRows: {
+              xs: "none",
+              md: "repeat(4, auto)",
+            },
+            gap: 2,
+          }}
+        >
+          {fields.map(({ label, key, format }) => {
+            const rawValue = data[key];
+            const avg = averages[key];
+            const value =
+              typeof rawValue === "number" ? format(rawValue) : "N/A";
+            const avgDisplay =
+              typeof avg === "number" ? `Avg: ${format(avg)}` : "";
+
+            return (
+              <Tooltip key={label} title={avgDisplay} placement="top" arrow>
+                <Box className="flex justify-between border-b border-white/10 py-1 min-w-[250px] cursor-help">
+                  <Typography variant="body2" className="text-[#A0AEC0] w-1/2">
+                    {label}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    className="text-[#00A3E0] text-right w-1/2 font-medium"
+                  >
+                    {value}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            );
+          })}
         </Box>
       </Paper>
     </Box>

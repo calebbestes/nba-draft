@@ -12,6 +12,16 @@ import {
   ToggleButtonGroup,
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 
 interface GameLogBase {
   date: string;
@@ -43,7 +53,7 @@ const statKeys = [
   "pts",
 ];
 
-const statLabels: Record<string, string> = {
+const statLabels: Record<string, number | string | null | undefined> = {
   usgPct: "USG%",
   tsPct: "TS%",
   efgPct: "eFG%",
@@ -225,40 +235,83 @@ function round(num: number | null): number | null {
   return num !== null && !isNaN(num) ? Math.round(num * 100) / 100 : null;
 }
 
-function getStatColorZ(value: number, mean: number, stdDev: number): string {
-  if (value === null || isNaN(value)) return "transparent";
-  const z = (value - mean) / stdDev;
-
-  if (z >= 2) return "rgba(0, 128, 0, 0.35)";
-  if (z >= 1.5) return "rgba(0, 160, 0, 0.25)";
-  if (z >= 0.75) return "rgba(0, 200, 0, 0.15)";
-  if (z <= -2) return "rgba(200, 0, 0, 0.35)";
-  if (z <= -1.5) return "rgba(220, 50, 0, 0.25)";
-  if (z <= -0.75) return "rgba(240, 100, 0, 0.15)";
-
-  return "transparent";
-}
-
 export default function PlayerGameLogTable({ gameLogs }: Props) {
   const [statView, setStatView] = useState<"advanced" | "basic">("basic");
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: {
+      payload: {
+        isHome: number;
+        homeTeamPts: number;
+        visitorTeamPts: number;
+        opponent: string;
+        [key: string]: unknown;
+      };
+      value: number;
+    }[];
+  }) => {
+    if (active && payload && payload.length > 0) {
+      const game = payload[0].payload;
+      const teamScore = game.isHome
+        ? (game.homeTeamPts ?? 0)
+        : (game.visitorTeamPts ?? 0);
 
+      const opponentScore = game.isHome
+        ? (game.visitorTeamPts ?? 0)
+        : (game.homeTeamPts ?? 0);
+
+      const resultLabel = teamScore > opponentScore ? "W" : "L";
+
+      return (
+        <Paper
+          elevation={3}
+          sx={{
+            p: 1.5,
+            backgroundColor: "#1D2D50",
+            color: "white",
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="body2">
+            <strong>Result:</strong> {resultLabel} {teamScore}–{opponentScore}
+          </Typography>
+          {game.opponent && (
+            <Typography variant="body2">
+              <strong>Opponent:</strong> {game.opponent}
+            </Typography>
+          )}
+          <Typography variant="body2">
+            <strong>Stat:</strong>{" "}
+            {selectedMetric.includes("Pct") || selectedMetric.includes("%")
+              ? payload[0].value.toFixed(1)
+              : Math.round(payload[0].value)}
+          </Typography>
+        </Paper>
+      );
+    }
+
+    return null;
+  };
   const processedLogs = useMemo(() => {
     return gameLogs.map((log) => {
       const playerStats: PlayerStats = {
-        fgm: Number(log.fgm),
-        fga: Number(log.fga),
-        tpm: Number(log.tpm),
-        ftm: Number(log.ftm),
-        fta: Number(log.fta),
-        oreb: Number(log.oreb),
-        dreb: Number(log.dreb),
-        reb: Number(log.reb),
-        ast: Number(log.ast),
-        stl: Number(log.stl),
-        blk: Number(log.blk),
-        tov: Number(log.tov),
-        pf: Number(log.pf),
-        pts: Number(log.pts),
+        fgm: Number(log.fgm) || 0,
+        fga: Number(log.fga) || 0,
+        tpm: Number(log.tpm) || 0,
+        ftm: Number(log.ftm) || 0,
+        fta: Number(log.fta) || 0,
+        oreb: Number(log.oreb) || 0,
+        dreb: Number(log.dreb) || 0,
+        reb: Number(log.reb) || 0,
+        ast: Number(log.ast) || 0,
+        stl: Number(log.stl) || 0,
+        blk: Number(log.blk) || 0,
+        tov: Number(log.tov) || 0,
+        pf: Number(log.pf) || 0,
+        pts: Number(log.pts) || 0,
         plusMinus:
           typeof log.plusMinus === "number" ? log.plusMinus : undefined,
         timePlayed:
@@ -278,33 +331,25 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
         reb: 38,
       };
 
+      const rawHomeScore =
+        typeof log.homeTeamPts === "number" ? log.homeTeamPts : 0;
+      const rawVisitorScore =
+        typeof log.visitorTeamPts === "number" ? log.visitorTeamPts : 0;
+
+      const isHome = log.isHome === 1;
+      const teamScore = isHome ? rawHomeScore : rawVisitorScore;
+      const opponentScore = isHome ? rawVisitorScore : rawHomeScore;
+      const result = teamScore > opponentScore ? "W" : "L";
+
       return {
         ...log,
+        result,
         ...calculateAdvancedStats(playerStats, teamStats, opponentStats),
       };
     });
   }, [gameLogs]);
 
-  const statDistributions = useMemo(() => {
-    const stats: Record<string, { mean: number; stdDev: number }> = {};
-    const allKeys = [...statKeys, ...basicStatKeys];
-
-    allKeys.forEach((key) => {
-      const values = processedLogs
-        .map((log) => log[key])
-        .filter((v): v is number => typeof v === "number");
-
-      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-      const stdDev = Math.sqrt(
-        values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-          values.length
-      );
-
-      stats[key] = { mean, stdDev };
-    });
-
-    return stats;
-  }, [processedLogs]);
+  const [selectedMetric, setSelectedMetric] = useState<string>("gameScore");
 
   return (
     <Box>
@@ -321,74 +366,119 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
         className="rounded-xl shadow-xl border border-[#CBD5E1] bg-[#F8FAFC]"
       >
         <ToggleButton value="basic">Basic Stats</ToggleButton>
-        <ToggleButton value="advanced">Advanced Stats</ToggleButton>
+        <ToggleButton value="advanced">Advanced Stats Trends</ToggleButton>
       </ToggleButtonGroup>
 
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Opponent</TableCell>
-              <TableCell>Result</TableCell>
-              <TableCell>MIN</TableCell>
-              {(statView === "advanced" ? statKeys : basicStatKeys).map(
-                (key) => (
+      {statView === "basic" ? (
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Opponent</TableCell>
+                <TableCell>Result</TableCell>
+                <TableCell>MIN</TableCell>
+                {basicStatKeys.map((key) => (
                   <TableCell key={key} align="right">
-                    {
-                      (statView === "advanced" ? statLabels : basicStatLabels)[
-                        key
-                      ]
-                    }
+                    {basicStatLabels[key]}
                   </TableCell>
-                )
-              )}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {processedLogs.map((log, idx) => (
-              <TableRow key={idx}>
-                <TableCell>
-                  {new Date(log.date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </TableCell>
-                <TableCell>{log.opponent ?? "-"}</TableCell>
-                <TableCell>{log.result ?? "-"}</TableCell>
-                <TableCell>{log.timePlayed ?? "-"}</TableCell>
-                {(statView === "advanced" ? statKeys : basicStatKeys).map(
-                  (key) => {
-                    const value = log[key];
-                    const dist = statDistributions[key];
-
-                    const bgColor =
-                      statView === "advanced" &&
-                      typeof value === "number" &&
-                      dist
-                        ? getStatColorZ(value, dist.mean, dist.stdDev)
-                        : "transparent";
-
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {processedLogs.map((log, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>
+                    {new Date(log.date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </TableCell>
+                  <TableCell>{log.opponent ?? "-"}</TableCell>
+                  <TableCell>{log.result ?? "-"}</TableCell>
+                  <TableCell>
+                    {typeof log.timePlayed === "string"
+                      ? log.timePlayed.split(":")[0]
+                      : "-"}
+                  </TableCell>
+                  {basicStatKeys.map((key) => {
+                    const value = (
+                      log as Record<string, number | string | null | undefined>
+                    )[key];
                     return (
                       <TableCell
                         key={key}
                         align="right"
-                        style={{ backgroundColor: bgColor, color: "#111" }}
+                        style={{ color: "#111" }}
                       >
                         {typeof value === "number"
-                          ? value.toFixed(1)
-                          : typeof value === "string"
-                            ? value
-                            : "-"}
+                          ? Math.round(value)
+                          : (value ?? "-")}
                       </TableCell>
                     );
-                  }
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                  })}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <>
+          <Box className="mb-4">
+            <FormControl variant="outlined" size="small">
+              <InputLabel id="metric-label">Metric</InputLabel>
+              <Select
+                labelId="metric-label"
+                value={selectedMetric}
+                onChange={(e) => setSelectedMetric(e.target.value)}
+                label="Metric"
+                sx={{
+                  minWidth: 200,
+                  backgroundColor: "white",
+                  color: "#002B5E",
+                  fontWeight: 600,
+                }}
+              >
+                {statKeys.map((key) => (
+                  <MenuItem key={key} value={key}>
+                    {statLabels[key] || key}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={processedLogs}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                stroke="#FFFFFF"
+                tick={{ fill: "#FFFFFF", fontSize: 12 }}
+                tickFormatter={(dateStr) =>
+                  new Date(dateStr).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }
+              />
+              <YAxis
+                stroke="#FFFFFF"
+                tick={{ fill: "#FFFFFF", fontSize: 12 }}
+              />
+
+              <RechartsTooltip content={<CustomTooltip />} />
+              <Line
+                type="monotone"
+                dataKey={selectedMetric}
+                stroke="#00A3E0"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </>
+      )}
     </Box>
   );
 }

@@ -18,6 +18,7 @@ import { scoutingReports as initialReports } from "../data/scouting-reports";
 import PlayerMeasurements from "./player-measurements";
 import { getSpecialtyMap } from "../utils/get-player-specialties";
 import StarButton from "../components/star";
+import Footer from "../components/footer";
 
 export default function PlayerProfile() {
   const { name } = useParams();
@@ -374,6 +375,7 @@ export default function PlayerProfile() {
           })()}
         </Box>
       </Box>
+      <Footer />
     </Box>
   );
 }

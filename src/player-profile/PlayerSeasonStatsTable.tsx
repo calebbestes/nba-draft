@@ -22,6 +22,10 @@ interface PlayerStat {
 const statDescriptions: Record<string, string> = {
   Season: "Season Year",
   GP: "Games Played",
+  "USG%": "Estimated Usage Rate (FGA + 0.44*FTA + TOV per minute)",
+  Stock40: "Steals + Blocks per 40 Minutes",
+  "AST/TOV": "Assist-to-Turnover Ratio",
+
   MP: "Minutes Per Game",
   PTS: "Points Per Game",
   FGM: "Field Goals Made",
@@ -162,6 +166,11 @@ function calculateAdvancedSeasonStats(row: PlayerStat): PlayerStat {
     0.7 * blk -
     0.4 * pf -
     tov;
+  const usage = mp !== 0 ? ((fga + 0.44 * fta + tov) / mp) * 100 : null;
+
+  const stockRate = mp !== 0 ? ((stl + blk) / mp) * 40 : null;
+
+  const astToTov = tov !== 0 ? ast / tov : null;
 
   return {
     ...row,
@@ -175,6 +184,9 @@ function calculateAdvancedSeasonStats(row: PlayerStat): PlayerStat {
     "DRB/MP": drbPerMin,
     "TOV%": tovPct,
     "Game Score": gameScore,
+    "USG%": usage,
+    Stock40: stockRate,
+    "AST/TOV": astToTov,
   };
 }
 
@@ -283,32 +295,34 @@ export default function PlayerSeasonStatsTable({
                         : "transparent";
 
                     return (
-                      <Tooltip
-                        title={
-                          typeof mean === "number"
-                            ? `Average for draft class is ${key === "GP" ? Math.round(mean) : mean.toFixed(1)}`
-                            : ""
-                        }
-                        arrow
-                        placement="top"
+                      <TableCell
+                        key={key}
+                        align="center"
+                        className={`text-sm py-3 border-b border-white/5 font-medium
+    ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
+  `}
+                        style={{ backgroundColor: bgColor }}
                       >
-                        <TableCell
-                          key={key}
-                          align="center"
-                          className={`text-sm py-3 border-b border-white/5 font-medium
-      ${key === "Season" ? "text-[#00A3E0] font-semibold" : "text-white/90"}
-    `}
-                          style={{ backgroundColor: bgColor }}
+                        <Tooltip
+                          title={
+                            typeof mean === "number"
+                              ? `Average for draft class is ${key === "GP" ? Math.round(mean) : mean.toFixed(1)}`
+                              : ""
+                          }
+                          arrow
+                          placement="top"
                         >
-                          {typeof raw === "number"
-                            ? key === "Season"
-                              ? Math.round(raw)
-                              : key === "GP"
+                          <span>
+                            {typeof raw === "number"
+                              ? key === "Season"
                                 ? Math.round(raw)
-                                : raw.toFixed(1)
-                            : (raw ?? "-")}
-                        </TableCell>
-                      </Tooltip>
+                                : key === "GP"
+                                  ? Math.round(raw)
+                                  : raw.toFixed(1)
+                              : (raw ?? "-")}
+                          </span>
+                        </Tooltip>
+                      </TableCell>
                     );
                   })}
                 </TableRow>
