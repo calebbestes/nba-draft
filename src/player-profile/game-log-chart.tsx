@@ -240,7 +240,7 @@ function getStatColorZ(value: number, mean: number, stdDev: number): string {
 }
 
 export default function PlayerGameLogTable({ gameLogs }: Props) {
-  const [statView, setStatView] = useState<"advanced" | "basic">("advanced");
+  const [statView, setStatView] = useState<"advanced" | "basic">("basic");
 
   const processedLogs = useMemo(() => {
     return gameLogs.map((log) => {

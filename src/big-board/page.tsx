@@ -10,6 +10,10 @@ import { scoutRankings } from "../data/scoutRankings";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import MavsLogo from "../assets/dallas-mavericks-1-removebg-preview.png";
+import {
+  getSpecialtyMap,
+  type Specialty,
+} from "../utils/get-player-specialties";
 
 const rankingSources = [
   "Average Rank",
@@ -105,6 +109,8 @@ function getOutlierType(
 }
 export default function BigBoard() {
   const [sortKey, setSortKey] = useState("Average Rank");
+  const [specialtyFilter, setSpecialtyFilter] = useState<Specialty>("All");
+
   const avgRankMap = useMemo(() => {
     const playerMeans = bio.map((player) => {
       const ranking = scoutRankings.find((r) => r.playerId === player.playerId);
@@ -130,13 +136,20 @@ export default function BigBoard() {
     return map;
   }, []);
 
+  const specialtyMap = useMemo(() => getSpecialtyMap(bio), []);
+
   const sortedPlayers = useMemo(() => {
-    return [...bio].sort((a, b) => {
-      const rankA = getRank(a.playerId, sortKey, avgRankMap);
-      const rankB = getRank(b.playerId, sortKey, avgRankMap);
-      return (rankA ?? Infinity) - (rankB ?? Infinity);
-    });
-  }, [sortKey, avgRankMap]);
+    return [...bio]
+      .filter((player) => {
+        const specialty = specialtyMap[player.playerId] ?? "Shot Creator";
+        return specialtyFilter === "All" || specialty === specialtyFilter;
+      })
+      .sort((a, b) => {
+        const rankA = getRank(a.playerId, sortKey, avgRankMap);
+        const rankB = getRank(b.playerId, sortKey, avgRankMap);
+        return (rankA ?? Infinity) - (rankB ?? Infinity);
+      });
+  }, [sortKey, avgRankMap, specialtyFilter, specialtyMap]);
 
   const navigate = useNavigate();
 
@@ -161,6 +174,41 @@ export default function BigBoard() {
               <span className="absolute left-0 -bottom-1 w-full h-1 bg-gradient-to-r from-[#00538C] to-[#B8C4CA] rounded-md animate-pulse"></span>
             </div>
           </div>
+          <FormControl className="w-72 mt-6 sm:mt-0 sm:ml-6">
+            <InputLabel id="specialty-select-label" sx={{ color: "#A0AEC0" }}>
+              Filter by Specialty
+            </InputLabel>
+            <Select
+              labelId="specialty-select-label"
+              value={specialtyFilter}
+              label="Filter by Specialty"
+              onChange={(e) => setSpecialtyFilter(e.target.value as Specialty)}
+              className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-[#00538C]"
+              sx={{
+                fontWeight: 600,
+                color: "#002B5E",
+                "& .MuiSelect-icon": {
+                  color: "#00538C",
+                },
+                "&:hover": {
+                  borderColor: "#B8C4CA",
+                },
+              }}
+            >
+              {[
+                "All",
+                "Utility Big",
+                "Stretch Big",
+                "Three and D",
+                "Floor General",
+                "Shot Creator",
+              ].map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           <div className="sm:mt-8 sm:self-end">
             <FormControl className="w-72">
