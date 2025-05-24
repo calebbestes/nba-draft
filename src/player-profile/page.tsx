@@ -16,6 +16,7 @@ import Header from "../components/header";
 import AddReportDialog from "../components/add-report-dialog";
 import { scoutingReports as initialReports } from "../data/scouting-reports";
 import PlayerMeasurements from "./player-measurements";
+import { getSpecialtyMap } from "../utils/get-player-specialties";
 
 export default function PlayerProfile() {
   const { name } = useParams();
@@ -39,6 +40,8 @@ export default function PlayerProfile() {
     }
     return age;
   }
+  const specialtyMap = useMemo(() => getSpecialtyMap(bio), []);
+  const playerSpecialty = player ? specialtyMap[player.playerId] : null;
 
   const seasonStats = useMemo(() => {
     return player
@@ -163,6 +166,14 @@ export default function PlayerProfile() {
               <Typography variant="h6" className="text-[#A0AEC0]">
                 {player.currentTeam} • {player.league}
               </Typography>
+              {playerSpecialty && playerSpecialty !== "All" && (
+                <Typography
+                  variant="body2"
+                  className="mt-1 text-[#00B140] font-semibold"
+                >
+                  Specialty: {playerSpecialty}
+                </Typography>
+              )}
 
               <Box className="grid grid-cols-2 md:grid-cols-3 gap-4 text-white">
                 <div>

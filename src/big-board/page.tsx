@@ -9,7 +9,6 @@ import {
 import Header from "../components/header";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const rankingSources = [
