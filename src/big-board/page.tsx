@@ -119,10 +119,10 @@ export default function BigBoard() {
     <div className="min-h-screen bg-[#0C2340] text-white">
       <Header />
 
-      <div className="max-w-7xl mx-auto">
-        <div className="mt-10 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6">
-          <FormControl className="w-full sm:w-72">
-            <div className="w-full sm:w-72 rounded-xl border border-[#00A3E0] p-3 bg-white/10 backdrop-blur-sm shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mt-8 flex flex-col sm:flex-row items-start gap-6">
+          <div className="w-full sm:w-72">
+            <div className="w-full rounded-xl border border-[#00A3E0] p-3 bg-white/10 backdrop-blur-sm shadow-sm">
               <div className="mb-1 text-sm font-semibold text-[#B8C4CA]">
                 Search by Name
               </div>
@@ -134,30 +134,9 @@ export default function BigBoard() {
                 className="bg-white/90 text-[#002B5E] placeholder-[#94A3B8] rounded-xl shadow-sm border border-[#00538C] px-4 py-2.5 font-semibold focus:outline-none focus:ring-2 focus:ring-[#007DC5] w-full"
               />
             </div>
-          </FormControl>
-          {starred.size > 0 && (
-            <div className="w-full flex justify-center items-center">
-              <button
-                disabled={starred.size > 5}
-                onClick={() => {
-                  const ids = [...starred].slice(0, 5);
-                  navigate(`/compare?players=${ids.join(",")}`);
-                }}
-                className={`px-8 py-3 text-lg font-bold text-white rounded-2xl transition-all duration-300 ease-in-out
-        ${
-          starred.size > 5
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-gradient-to-r from-[#007A33] to-[#00B140] hover:from-[#006326] hover:to-[#009933] shadow-xl hover:shadow-2xl"
-        }
-      `}
-                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}
-              >
-                Compare Starred Players
-              </button>
-            </div>
-          )}
+          </div>
 
-          <div className="ml-auto w-70 rounded-xl border border-[#00A3E0] p-3 bg-white/10 backdrop-blur-sm shadow-sm flex flex-col ">
+          <div className="w-70 rounded-xl border border-[#00A3E0] p-3 bg-white/10 backdrop-blur-sm shadow-sm flex flex-col">
             <FormControl sx={{ width: "100%" }}>
               <div className="grid grid-cols-[60px_1fr] items-center gap-2 h-8">
                 <label
@@ -246,10 +225,32 @@ export default function BigBoard() {
               </div>
             </FormControl>
           </div>
+
+          {starred.size > 0 && (
+            <div className="ml-auto">
+              <button
+                disabled={starred.size > 5}
+                onClick={() => {
+                  const ids = [...starred].slice(0, 5);
+                  navigate(`/compare?players=${ids.join(",")}`);
+                }}
+                className={`px-8 py-3 text-lg font-bold text-white rounded-2xl transition-all duration-300 ease-in-out
+                  ${
+                    starred.size > 5
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#007A33] to-[#00B140] hover:from-[#006326] hover:to-[#009933] shadow-xl hover:shadow-2xl"
+                  }
+                `}
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}
+              >
+                Compare Starred Players
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {sortedPlayers.map((player) => {
           const rank = getRank(player.playerId, sortKey, avgRankMap);
           const [minRank, minSource, maxRank, maxSource] = getMinMaxRank(
@@ -313,13 +314,13 @@ export default function BigBoard() {
                       >
                         <div
                           className={`w-12 h-12 flex items-center justify-center rounded-full font-extrabold text-lg shadow-md hover:shadow-lg transition cursor-help
-        ${
-          outlierType === "high"
-            ? "bg-green-500 hover:bg-green-600 text-white"
-            : outlierType === "low"
-              ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
-        }`}
+                            ${
+                              outlierType === "high"
+                                ? "bg-green-500 hover:bg-green-600 text-white"
+                                : outlierType === "low"
+                                ? "bg-red-600 hover:bg-red-700 text-white"
+                                : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
+                            }`}
                         >
                           #{Math.round(rank)}
                         </div>
