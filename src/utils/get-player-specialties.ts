@@ -1,97 +1,68 @@
-import { seasonLogs } from "../data/season-logs";
 import { bio } from "../data/bio";
-
+import { seasonLogs } from "../data/season-logs";
 export type Specialty =
   | "All"
-  | "Utility Big"
+  | "Starred"
+  | "Versatile"
   | "Stretch Big"
   | "Three and D"
-  | "Floor General"
-  | "Shot Creator"
-  | "Starred";
+  | "Pure Scorer"
+  | "Potential"
+  | "Utility Big";
 
-const fallbackCycle: Specialty[] = [
-  "Utility Big",
-  "Stretch Big",
-  "Three and D",
-  "Floor General",
-  "Shot Creator",
-  "Starred",
-];
+export type PlayerSeasonLog = (typeof seasonLogs)[number];
+
+export function classifyPlayer(player: PlayerSeasonLog): Specialty {
+  const threePointPercentage = player["3P%"];
+  const ftMade = player.FT;
+  const threePointMade = player["3PM"];
+  const rebounds = player.TRB;
+  const assists = player.AST;
+  const points = player.PTS;
+  const threePointAttempts = player["3PA"];
+  const height = bio.find((p) => p.playerId === player.playerId)?.height || 0;
+
+  const bigHeightThreshold = 80; // roughly 6'8" and taller
+
+  if (assists >= 4 && points > 10 && rebounds > 4) {
+    return "Versatile";
+  }
+  if (height >= bigHeightThreshold && threePointMade <= 1 && rebounds > 6) {
+    return "Utility Big";
+  }
+
+  if (height >= bigHeightThreshold && assists < 4 && threePointMade > 1) {
+    return "Stretch Big";
+  }
+
+  if (
+    height <= bigHeightThreshold &&
+    threePointPercentage >= 35 &&
+    assists < 3 &&
+    ftMade < 3.5
+  ) {
+    return "Three and D";
+  }
+
+  if (points >= 10 && ftMade > 2.3 && threePointAttempts > 2.7) {
+    return "Pure Scorer";
+  } else return "Potential";
+}
 
 export function getSpecialtyMap(
   players: { playerId: number }[]
 ): Record<number, Specialty> {
-  const map: Record<number, Specialty> = {};
-  let fallbackIndex = 0;
+  const specialtyMap: Record<number, Specialty> = {};
 
-  for (const player of players) {
-    const log = seasonLogs.find((log) => log.playerId === player.playerId);
-    const profile = bio.find((b) => b.playerId === player.playerId);
-    if (!log || !profile) continue;
+  players.forEach(({ playerId }) => {
+    const playerLog = seasonLogs.find((log) => log.playerId === playerId);
 
-    const {
-      BLK,
-      STL,
-      AST,
-      FGA,
-      FT,
-      FTA,
-      TOV,
-      TRB,
-      "3PA": threePA,
-      "3P%": threeP,
-      PTS,
-    } = log;
-
-    const height = profile.height ?? 0;
-
-    const isUtilityBig =
-      height >= 80 && TRB >= 5.5 && BLK >= 1.0 && threePA < 2.0;
-
-    const isStretchBig = height >= 80 && TRB >= 5 && threePA >= 2;
-
-    const isThreeAndD = STL >= 1.0 && AST < 4 && threeP >= 0.36;
-
-    const isFloorGeneral = AST >= 4;
-
-    const isShotCreator = TOV > 1.5 && PTS > 15;
-
-    let specialty: Specialty;
-
-    if (isUtilityBig) {
-      specialty = "Utility Big";
-    } else if (isStretchBig) {
-      specialty = "Stretch Big";
-    } else if (isThreeAndD) {
-      specialty = "Three and D";
-    } else if (isFloorGeneral) {
-      specialty = "Floor General";
-    } else if (isShotCreator) {
-      specialty = "Shot Creator";
+    if (playerLog) {
+      specialtyMap[playerId] = classifyPlayer(playerLog);
     } else {
-      // Evenly distribute unclassified players across the 5 buckets
-      specialty = fallbackCycle[fallbackIndex % fallbackCycle.length];
-      fallbackIndex++;
+      specialtyMap[playerId] = "Versatile";
     }
+  });
 
-    console.log(`${profile.name} (${specialty})`, {
-      height,
-      BLK,
-      STL,
-      AST,
-      TOV,
-      FGA,
-      FT,
-      FTA,
-      TRB,
-      threePA,
-      threeP,
-      PTS,
-    });
-
-    map[player.playerId] = specialty;
-  }
-
-  return map;
+  return specialtyMap;
 }

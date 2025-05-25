@@ -13,6 +13,7 @@ interface Props {
   means: Record<string, number>;
   stdDevs: Record<string, number>;
   type: "basic" | "advanced";
+  compareAgainstClass?: boolean;
 }
 interface PlayerStat {
   Season: number | string;
@@ -124,7 +125,7 @@ function groupAndFilterStatsWithLeagues(stats: PlayerStat[]) {
   return { mergedStats, skippedLeagues: Array.from(skippedLeagues) };
 }
 
-function calculateAdvancedSeasonStats(row: PlayerStat): PlayerStat {
+export function calculateAdvancedSeasonStats(row: PlayerStat): PlayerStat {
   const fga = Number(row["FGA"]) || 0;
   const fta = Number(row["FTA"]) || 0;
   const pts = Number(row["PTS"]) || 0;
@@ -195,11 +196,9 @@ export default function PlayerSeasonStatsTable({
   means,
   stdDevs,
   type,
+  compareAgainstClass = true,
 }: Props) {
   if (!stats) return null;
-
-  const { mergedStats, skippedLeagues } = groupAndFilterStatsWithLeagues(stats);
-
   const basicStats = [
     "Season",
     "GP",
@@ -238,8 +237,32 @@ export default function PlayerSeasonStatsTable({
     "TOV%",
     "Game Score",
   ];
-
+  const { mergedStats, skippedLeagues } = groupAndFilterStatsWithLeagues(stats);
   const displayKeys = type === "basic" ? basicStats : advancedStats;
+
+  const derivedMeans: Record<string, number> = {};
+  const derivedStdDevs: Record<string, number> = {};
+
+  if (!compareAgainstClass) {
+    const keys = displayKeys.filter((k) => k !== "Season");
+
+    keys.forEach((key) => {
+      const values = mergedStats
+        .map((s) => s[key])
+        .filter((v): v is number => typeof v === "number" && !isNaN(v));
+
+      if (values.length > 0) {
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const stdDev = Math.sqrt(
+          values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) /
+            values.length
+        );
+        derivedMeans[key] = mean;
+        derivedStdDevs[key] = stdDev;
+      }
+    });
+  }
+
   const noColorKeys = new Set(["Season", "w", "l"]);
 
   return (
@@ -283,9 +306,13 @@ export default function PlayerSeasonStatsTable({
                 >
                   {displayKeys.map((key) => {
                     const raw = seasonStats[key] ?? null;
+                    const useMean = compareAgainstClass ? means : derivedMeans;
+                    const useStdDev = compareAgainstClass
+                      ? stdDevs
+                      : derivedStdDevs;
+                    const mean = useMean[key];
+                    const stdDev = useStdDev[key];
                     const value = typeof raw === "number" ? raw : null;
-                    const mean = means[key];
-                    const stdDev = stdDevs[key];
                     const bgColor =
                       !noColorKeys.has(key) &&
                       value !== null &&

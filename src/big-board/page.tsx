@@ -1,11 +1,9 @@
 import { MenuItem, Tooltip, Select, FormControl } from "@mui/material";
 import { bio } from "../data/bio";
 import { scoutRankings } from "../data/scoutRankings";
-import { useMemo, useState } from "react";
-import {
-  getSpecialtyMap,
-  type Specialty,
-} from "../utils/get-player-specialties";
+import { useEffect, useMemo, useState } from "react";
+import { type Specialty } from "../utils/get-player-specialties";
+import { getSpecialtyMap } from "../utils/get-player-specialties";
 import Header from "../components/header";
 import { useNavigate } from "react-router-dom";
 import StarButton from "../components/star";
@@ -29,13 +27,24 @@ export default function BigBoard() {
     return localStorage.getItem("sortKey") || "Average Rank";
   });
 
-  const [specialtyFilter, setSpecialtyFilter] = useState<Specialty>(() => {
-    return (localStorage.getItem("specialtyFilter") as Specialty) || "All";
-  });
+  useEffect(() => {
+    localStorage.setItem("sortKey", sortKey);
+  }, [sortKey]);
 
   const [searchQuery, setSearchQuery] = useState(() => {
     return localStorage.getItem("searchQuery") || "";
   });
+
+  useEffect(() => {
+    localStorage.setItem("searchQuery", searchQuery);
+  }, [searchQuery]);
+  const [specialtyFilter, setSpecialtyFilter] = useState<Specialty>(() => {
+    return (localStorage.getItem("specialtyFilter") as Specialty) || "All";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("specialtyFilter", specialtyFilter);
+  }, [specialtyFilter]);
 
   function toggleStar(playerId: number) {
     setStarred((prev) => {
@@ -81,12 +90,15 @@ export default function BigBoard() {
     return map;
   }, []);
 
-  const specialtyMap = useMemo(() => getSpecialtyMap(bio), []);
+  const specialtyMap = useMemo(
+    () => getSpecialtyMap(bio.map((p) => ({ playerId: p.playerId }))),
+    []
+  );
 
   const sortedPlayers = useMemo(() => {
     return [...bio]
       .filter((player) => {
-        const specialty = specialtyMap[player.playerId] ?? "Shot Creator";
+        const specialty = specialtyMap[player.playerId] ?? "Pure Scorer";
         const matchesSpecialty =
           specialtyFilter === "All" ||
           (specialtyFilter === "Starred"
@@ -171,12 +183,12 @@ export default function BigBoard() {
                 >
                   {[
                     "All",
-                    "Starred",
+                    "Versatile",
                     "Stretch Big",
                     "Three and D",
-                    "Floor General",
-                    "Shot Creator",
+                    "Pure Scorer",
                     "Utility Big",
+                    "Potential",
                   ].map((type) => (
                     <MenuItem key={type} value={type}>
                       {type}
