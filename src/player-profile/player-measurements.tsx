@@ -83,10 +83,26 @@ export default function PlayerMeasurements({ playerId }: Props) {
           {fields.map(({ label, key, format }) => {
             const rawValue = data[key];
             const avg = averages[key];
-            const value =
-              typeof rawValue === "number" ? format(rawValue) : "N/A";
-            const avgDisplay =
-              typeof avg === "number" ? `Avg: ${format(avg)}` : "";
+            let value = "N/A";
+            let colorClass = "text-[#00A3E0]"; // default blue
+            const avgDisplay = "";
+
+            if (typeof rawValue === "number" && typeof avg === "number") {
+              value = format(rawValue);
+
+              const stdDev = Math.sqrt(
+                measurements
+                  .map((m) => m[key])
+                  .filter((v): v is number => typeof v === "number")
+                  .reduce((sum, val) => sum + (val - avg) ** 2, 0) /
+                  measurements.length
+              );
+
+              const zScore = stdDev === 0 ? 0 : (rawValue - avg) / stdDev;
+
+              if (zScore >= 1) colorClass = "text-green-400";
+              else if (zScore <= -1) colorClass = "text-red-400";
+            }
 
             return (
               <Tooltip key={label} title={avgDisplay} placement="top" arrow>
@@ -96,7 +112,7 @@ export default function PlayerMeasurements({ playerId }: Props) {
                   </Typography>
                   <Typography
                     variant="body2"
-                    className="text-[#00A3E0] text-right w-1/2 font-medium"
+                    className={`${colorClass} text-right w-1/2 font-medium`}
                   >
                     {value}
                   </Typography>

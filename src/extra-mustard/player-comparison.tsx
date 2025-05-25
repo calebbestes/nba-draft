@@ -10,16 +10,14 @@ import {
   TextField,
 } from "@mui/material";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-
+import { calculatePeerStats } from "../utils/statistics";
 import { bio } from "../data/bio";
 import { game_logs } from "../data/game-logs";
 import { seasonLogs } from "../data/season-logs";
 
 import PlayerMeasurements from "../player-profile/player-measurements";
 import PlayerGameLogTable from "../player-profile/game-log-chart";
-import PlayerSeasonStatsTable, {
-  calculateAdvancedSeasonStats,
-} from "../player-profile/PlayerSeasonStatsTable";
+import PlayerSeasonStatsTable from "../player-profile/PlayerSeasonStatsTable";
 
 import StarButton from "../components/star";
 import Footer from "../components/footer";
@@ -52,72 +50,10 @@ export default function PlayerComparison() {
     () => seasonLogs.filter((s) => selectedPlayers.includes(s.playerId)),
     [selectedPlayers]
   );
-
-  const { means: peerMeans, stdDevs: peerStdDevs } = useMemo(() => {
-    const keys = [
-      "MP",
-      "PTS",
-      "FGM",
-      "FGA",
-      "FG%",
-      "3PM",
-      "3PA",
-      "3P%",
-      "FT",
-      "FTA",
-      "FTP",
-      "ORB",
-      "DRB",
-      "TRB",
-      "AST",
-      "STL",
-      "BLK",
-      "TOV",
-      "PF",
-      "TS%",
-      "eFG%",
-      "PPS",
-      "FTr",
-      "3PAr",
-      "AST/MP",
-      "TRB/MP",
-      "ORB/MP",
-      "DRB/MP",
-      "TOV%",
-      "Game Score",
-      "USG%",
-      "Stock40",
-      "AST/TOV",
-    ];
-
-    const valuesByKey: Record<string, number[]> = {};
-    comparisonStats.forEach((row) => {
-      const adv = calculateAdvancedSeasonStats(row);
-      keys.forEach((key) => {
-        const val = adv[key];
-        if (typeof val === "number" && !isNaN(val)) {
-          (valuesByKey[key] ||= []).push(val);
-        }
-      });
-    });
-
-    const means: Record<string, number> = {};
-    const stdDevs: Record<string, number> = {};
-
-    keys.forEach((key) => {
-      const vals = valuesByKey[key] || [];
-      if (vals.length) {
-        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-        means[key] = mean;
-        stdDevs[key] = Math.sqrt(
-          vals.reduce((sum, v) => sum + (v - mean) ** 2, 0) / vals.length
-        );
-      }
-    });
-
-    return { means, stdDevs };
-  }, [comparisonStats]);
-
+  const { means: peerMeans, stdDevs: peerStdDevs } = useMemo(
+    () => calculatePeerStats(comparisonStats),
+    [comparisonStats]
+  );
   const handlePlayerSelect = (playerId: number | null) => {
     if (!playerId) return;
     setSelectedPlayers((prev) =>
