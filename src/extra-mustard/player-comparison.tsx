@@ -183,6 +183,59 @@ export default function PlayerComparison() {
                 )}
               />
             </div>
+    <Box className="min-h-screen bg-[#0C2340]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <Typography variant="h4" className="text-white font-bold">
+              Player Comparison
+            </Typography>
+            <button
+              onClick={() => navigate("/")}
+              className="text-sm font-semibold text-white bg-[#00A3E0] hover:bg-[#007ab8] px-4 py-2 rounded-lg transition-colors"
+            >
+              ← Back to Big Board
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <Typography variant="h6" className="text-white mb-4">
+                Add Players (max 5)
+              </Typography>
+              <Autocomplete
+                options={players}
+                getOptionLabel={(option) => option.label}
+                onChange={(_, value) => handlePlayerSelect(value?.id ?? null)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search for a player..."
+                    variant="outlined"
+                    className="bg-white/5 rounded-xl"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.2)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.3)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#00A3E0",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "rgba(255, 255, 255, 0.7)",
+                      },
+                      "& .MuiInputBase-input": {
+                        color: "white",
+                      },
+                    }}
+                  />
+                )}
+              />
+            </div>
 
             <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
               <Typography variant="h6" className="text-white mb-4">
