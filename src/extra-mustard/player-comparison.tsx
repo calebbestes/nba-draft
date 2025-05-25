@@ -153,6 +153,20 @@ export default function PlayerComparison() {
                 options={players}
                 getOptionLabel={(option) => option.label}
                 onChange={(_, value) => handlePlayerSelect(value?.id ?? null)}
+                renderOption={(props, option) => {
+                  const isSelected = selectedPlayers.includes(option.id);
+                  return (
+                    <li
+                      {...props}
+                      className="flex justify-between items-center w-full px-2"
+                    >
+                      <span>{option.label}</span>
+                      {isSelected && (
+                        <span className="text-green-400 font-bold ml-2">✓</span>
+                      )}
+                    </li>
+                  );
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
