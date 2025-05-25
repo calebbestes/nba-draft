@@ -41,7 +41,7 @@ export default function PlayerComparison() {
   }, [searchParams]);
 
   const [selectedPlayers, setSelectedPlayers] = useState<number[]>(initialIds);
-  const [comparisonMode, setComparisonMode] = useState(COMPARISON_OPTIONS[2]);
+  const [comparisonMode, setComparisonMode] = useState(COMPARISON_OPTIONS[1]);
 
   const players = useMemo(
     () => bio.map((p) => ({ label: p.name, id: p.playerId })),

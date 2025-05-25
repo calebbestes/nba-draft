@@ -183,6 +183,7 @@ export default function BigBoard() {
                 >
                   {[
                     "All",
+                    "Starred",
                     "Versatile",
                     "Stretch Big",
                     "Three and D",

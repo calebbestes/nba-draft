@@ -2,11 +2,11 @@ import { bio } from "../data/bio";
 import { seasonLogs } from "../data/season-logs";
 export type Specialty =
   | "All"
-  | "Starred"
   | "Versatile"
   | "Stretch Big"
   | "Three and D"
   | "Pure Scorer"
+  | "Starred"
   | "Potential"
   | "Utility Big";
 
@@ -27,7 +27,7 @@ export function classifyPlayer(player: PlayerSeasonLog): Specialty {
   if (assists >= 4 && points > 10 && rebounds > 4) {
     return "Versatile";
   }
-  if (height >= bigHeightThreshold && threePointMade <= 1 && rebounds > 6) {
+  if (height >= bigHeightThreshold && threePointMade <= 1 && rebounds > 5.7) {
     return "Utility Big";
   }
 
