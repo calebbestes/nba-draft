@@ -296,57 +296,60 @@ export default function PlayerGameLogTable({ gameLogs }: Props) {
     return null;
   };
   const processedLogs = useMemo(() => {
-    return gameLogs.map((log) => {
-      const playerStats: PlayerStats = {
-        fgm: Number(log.fgm) || 0,
-        fga: Number(log.fga) || 0,
-        tpm: Number(log.tpm) || 0,
-        ftm: Number(log.ftm) || 0,
-        fta: Number(log.fta) || 0,
-        oreb: Number(log.oreb) || 0,
-        dreb: Number(log.dreb) || 0,
-        reb: Number(log.reb) || 0,
-        ast: Number(log.ast) || 0,
-        stl: Number(log.stl) || 0,
-        blk: Number(log.blk) || 0,
-        tov: Number(log.tov) || 0,
-        pf: Number(log.pf) || 0,
-        pts: Number(log.pts) || 0,
-        plusMinus:
-          typeof log.plusMinus === "number" ? log.plusMinus : undefined,
-        timePlayed:
-          typeof log.timePlayed === "string" ? log.timePlayed : "0:00",
-      };
+    return gameLogs
+      .slice() // avoid mutating original array
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((log) => {
+        const playerStats: PlayerStats = {
+          fgm: Number(log.fgm) || 0,
+          fga: Number(log.fga) || 0,
+          tpm: Number(log.tpm) || 0,
+          ftm: Number(log.ftm) || 0,
+          fta: Number(log.fta) || 0,
+          oreb: Number(log.oreb) || 0,
+          dreb: Number(log.dreb) || 0,
+          reb: Number(log.reb) || 0,
+          ast: Number(log.ast) || 0,
+          stl: Number(log.stl) || 0,
+          blk: Number(log.blk) || 0,
+          tov: Number(log.tov) || 0,
+          pf: Number(log.pf) || 0,
+          pts: Number(log.pts) || 0,
+          plusMinus:
+            typeof log.plusMinus === "number" ? log.plusMinus : undefined,
+          timePlayed:
+            typeof log.timePlayed === "string" ? log.timePlayed : "0:00",
+        };
 
-      const teamStats: TeamStats = {
-        minutes: 200,
-        fga: 60,
-        fta: 20,
-        tov: 12,
-        fgm: 25,
-        reb: 35,
-      };
+        const teamStats: TeamStats = {
+          minutes: 200,
+          fga: 60,
+          fta: 20,
+          tov: 12,
+          fgm: 25,
+          reb: 35,
+        };
 
-      const opponentStats: OpponentStats = {
-        reb: 38,
-      };
+        const opponentStats: OpponentStats = {
+          reb: 38,
+        };
 
-      const rawHomeScore =
-        typeof log.homeTeamPts === "number" ? log.homeTeamPts : 0;
-      const rawVisitorScore =
-        typeof log.visitorTeamPts === "number" ? log.visitorTeamPts : 0;
+        const rawHomeScore =
+          typeof log.homeTeamPts === "number" ? log.homeTeamPts : 0;
+        const rawVisitorScore =
+          typeof log.visitorTeamPts === "number" ? log.visitorTeamPts : 0;
 
-      const isHome = log.isHome === 1;
-      const teamScore = isHome ? rawHomeScore : rawVisitorScore;
-      const opponentScore = isHome ? rawVisitorScore : rawHomeScore;
-      const result = teamScore > opponentScore ? "W" : "L";
+        const isHome = log.isHome === 1;
+        const teamScore = isHome ? rawHomeScore : rawVisitorScore;
+        const opponentScore = isHome ? rawVisitorScore : rawHomeScore;
+        const result = teamScore > opponentScore ? "W" : "L";
 
-      return {
-        ...log,
-        result,
-        ...calculateAdvancedStats(playerStats, teamStats, opponentStats),
-      };
-    });
+        return {
+          ...log,
+          result,
+          ...calculateAdvancedStats(playerStats, teamStats, opponentStats),
+        };
+      });
   }, [gameLogs]);
 
   const [selectedMetric, setSelectedMetric] = useState<string>("gameScore");
