@@ -318,8 +318,8 @@ export default function BigBoard() {
                               outlierType === "high"
                                 ? "bg-green-500 hover:bg-green-600 text-white"
                                 : outlierType === "low"
-                                ? "bg-red-600 hover:bg-red-700 text-white"
-                                : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
+                                  ? "bg-red-600 hover:bg-red-700 text-white"
+                                  : "bg-black hover:bg-gray-900 text-[#C0C0C0]"
                             }`}
                         >
                           #{Math.round(rank)}

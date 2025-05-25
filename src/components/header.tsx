@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import MavsLogo from "../assets/dallas-mavericks-1-removebg-preview.png";
+// import MavsLogo from "../assets/dallas-mavericks-1-removebg-preview.png";
 import Countdown from "./countdown";
 
 export default function Header() {
@@ -21,7 +21,7 @@ export default function Header() {
             <Countdown targetDate="2025-06-26T19:00:00Z" />
             <Link to="/">
               <img
-                src={MavsLogo}
+                src="https://i.imgur.com/5Y4rVgD.png"
                 alt="Dallas Mavericks Logo"
                 className="h-20 sm:h-24 md:h-28 lg:h-32 object-contain"
               />
