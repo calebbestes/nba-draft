@@ -18,7 +18,7 @@ import PlayerGameLogTable from "../player-profile/game-log-chart";
 import PlayerSeasonStatsTable from "../player-profile/PlayerSeasonStatsTable";
 import StarButton from "../components/star";
 import Footer from "../components/footer";
-import { useNavigate } from "react-router-dom"; // <-- NEW
+import { useNavigate } from "react-router-dom";
 
 export default function PlayerComparison() {
   const navigate = useNavigate();
@@ -87,140 +87,165 @@ export default function PlayerComparison() {
   }, []);
 
   return (
-    <Box className="min-h-screen bg-[#0C2340] text-white p-6">
-      <Typography
-        variant="h4"
-        className="text-center mb-8 font-bold text-[#00A3E0]"
-      >
-        Player Comparison
-      </Typography>
-
-      <Box className="mb-4">
-        <button
-          onClick={() => navigate("/")}
-          className="text-sm font-semibold text-white bg-[#00A3E0] hover:bg-[#007ab8] px-4 py-2 rounded-lg"
-        >
-          ← Back to Home
-        </button>
-      </Box>
-      <Box className="max-w-xl mx-auto mb-6">
-        <Autocomplete
-          options={players}
-          getOptionLabel={(option) => option.label}
-          onChange={(_, value) => handlePlayerSelect(value?.id ?? null)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Add Player (max 5)"
-              variant="outlined"
-              className="bg-black/10 rounded-xl"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: "rgba(255, 255, 255, 0.2)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#00A3E0",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  color: "rgba(255, 255, 255, 0.7)",
-                },
-                "& .MuiInputBase-input": {
-                  color: "white",
-                },
-              }}
-            />
-          )}
-        />
-      </Box>
-
-      <FormControl sx={{ mb: 6, minWidth: 240 }}>
-        <Select
-          value={comparisonMode}
-          onChange={(e) => setComparisonMode(e.target.value)}
-          sx={{
-            backgroundColor: "white",
-            color: "#002B5E",
-            fontWeight: 600,
-            borderRadius: "8px",
-          }}
-        >
-          <MenuItem value="Measurements">Measurements</MenuItem>
-          <MenuItem value="Advanced Trends">Game By Game</MenuItem>
-          <MenuItem value="Season Basic Stats">Season Basic Stats</MenuItem>
-          <MenuItem value="Season Advanced Stats">
-            Season Advanced Stats
-          </MenuItem>
-        </Select>
-      </FormControl>
-
-      {selectedPlayers.length > 0 && (
-        <Box className="flex flex-col gap-6">
-          {selectedPlayers.map((playerId) => (
-            <Paper
-              key={playerId}
-              className="bg-white/5 border border-white/20 p-6 rounded-xl"
+    <Box className="min-h-screen bg-[#0C2340]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <Typography variant="h4" className="text-white font-bold">
+              Player Comparison
+            </Typography>
+            <button
+              onClick={() => navigate("/")}
+              className="text-sm font-semibold text-white bg-[#00A3E0] hover:bg-[#007ab8] px-4 py-2 rounded-lg transition-colors"
             >
-              <Box className="flex justify-between items-center mb-2">
-                {(() => {
-                  const player = bio.find((p) => p.playerId === playerId);
-                  if (!player) return null;
-                  const profileUrl = `/player/${encodeURIComponent(player.name)}`;
-                  return (
-                    <Link
-                      to={profileUrl}
-                      className="text-[#00A3E0] hover:underline font-semibold"
-                    >
-                      <Typography variant="h6">{player.name}</Typography>
-                    </Link>
-                  );
-                })()}
+              ← Back to Big Board
+            </button>
+          </div>
 
-                <StarButton
-                  isStarred={true}
-                  onToggle={() =>
-                    setSelectedPlayers((prev) =>
-                      prev.filter((id) => id !== playerId)
-                    )
-                  }
-                />
-              </Box>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <Typography variant="h6" className="text-white mb-4">
+                Add Players (max 5)
+              </Typography>
+              <Autocomplete
+                options={players}
+                getOptionLabel={(option) => option.label}
+                onChange={(_, value) => handlePlayerSelect(value?.id ?? null)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search for a player..."
+                    variant="outlined"
+                    className="bg-white/5 rounded-xl"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.2)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.3)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#00A3E0",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "rgba(255, 255, 255, 0.7)",
+                      },
+                      "& .MuiInputBase-input": {
+                        color: "white",
+                      },
+                    }}
+                  />
+                )}
+              />
+            </div>
 
-              {comparisonMode === "Measurements" && (
-                <PlayerMeasurements playerId={playerId} />
-              )}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <Typography variant="h6" className="text-white mb-4">
+                Comparison Type
+              </Typography>
+              <FormControl fullWidth>
+                <Select
+                  value={comparisonMode}
+                  onChange={(e) => setComparisonMode(e.target.value)}
+                  sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    color: "white",
+                    "& .MuiSelect-icon": {
+                      color: "white",
+                    },
+                    "& fieldset": {
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    },
+                  }}
+                >
+                  <MenuItem value="Measurements">Measurements</MenuItem>
+                  <MenuItem value="Advanced Trends">Game By Game</MenuItem>
+                  <MenuItem value="Season Basic Stats">Season Basic Stats</MenuItem>
+                  <MenuItem value="Season Advanced Stats">
+                    Season Advanced Stats
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
 
-              {comparisonMode === "Advanced Trends" && (
-                <PlayerGameLogTable
-                  gameLogs={game_logs.filter((g) => g.playerId === playerId)}
-                />
-              )}
+          {selectedPlayers.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+              {selectedPlayers.map((playerId) => {
+                const player = bio.find((p) => p.playerId === playerId);
+                if (!player) return null;
 
-              {comparisonMode === "Season Basic Stats" && (
-                <PlayerSeasonStatsTable
-                  stats={seasonLogs.filter((s) => s.playerId === playerId)}
-                  means={means}
-                  stdDevs={stdDevs}
-                  type="basic"
-                />
-              )}
+                return (
+                  <Paper
+                    key={playerId}
+                    className="bg-white/5 border border-white/10 rounded-xl overflow-hidden"
+                  >
+                    <div className="p-4 bg-gradient-to-r from-[#1A365D] to-[#0C2340] border-b border-white/10">
+                      <div className="flex justify-between items-center">
+                        <Link
+                          to={`/player/${encodeURIComponent(player.name)}`}
+                          className="text-[#00A3E0] hover:text-[#007ab8] transition-colors"
+                        >
+                          <Typography variant="h6">{player.name}</Typography>
+                        </Link>
+                        <StarButton
+                          isStarred={true}
+                          onToggle={() =>
+                            setSelectedPlayers((prev) =>
+                              prev.filter((id) => id !== playerId)
+                            )
+                          }
+                        />
+                      </div>
+                      <Typography
+                        variant="body2"
+                        className="text-[#A0AEC0] mt-1"
+                      >
+                        {player.currentTeam} • {player.league}
+                      </Typography>
+                    </div>
 
-              {comparisonMode === "Season Advanced Stats" && (
-                <PlayerSeasonStatsTable
-                  stats={seasonLogs.filter((s) => s.playerId === playerId)}
-                  means={means}
-                  stdDevs={stdDevs}
-                  type="advanced"
-                />
-              )}
-            </Paper>
-          ))}
-        </Box>
-      )}
+                    <div className="p-4">
+                      {comparisonMode === "Measurements" && (
+                        <PlayerMeasurements playerId={playerId} />
+                      )}
+                      {comparisonMode === "Advanced Trends" && (
+                        <PlayerGameLogTable
+                          gameLogs={game_logs.filter(
+                            (g) => g.playerId === playerId
+                          )}
+                        />
+                      )}
+                      {comparisonMode === "Season Basic Stats" && (
+                        <PlayerSeasonStatsTable
+                          stats={seasonLogs.filter(
+                            (s) => s.playerId === playerId
+                          )}
+                          means={means}
+                          stdDevs={stdDevs}
+                          type="basic"
+                        />
+                      )}
+                      {comparisonMode === "Season Advanced Stats" && (
+                        <PlayerSeasonStatsTable
+                          stats={seasonLogs.filter(
+                            (s) => s.playerId === playerId
+                          )}
+                          means={means}
+                          stdDevs={stdDevs}
+                          type="advanced"
+                        />
+                      )}
+                    </div>
+                  </Paper>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
       <Footer />
     </Box>
   );
