@@ -1,41 +1,33 @@
 import { useParams } from "react-router-dom";
-import { useState, useMemo } from "react";
-import { bio } from "../data/bio";
-import { game_logs } from "../data/game-logs";
-import { seasonLogs } from "../data/season-logs";
+import { useState } from "react";
+import { players } from "../data/players";
 import {
   Typography,
   Box,
-  ToggleButton,
-  ToggleButtonGroup,
   Paper,
 } from "@mui/material";
-import PlayerGameLogTable from "./game-log-chart";
-import PlayerSeasonStatsTable from "./PlayerSeasonStatsTable";
 import Header from "../components/header";
 import AddReportDialog from "../components/add-report-dialog";
 import { scoutingReports as initialReports } from "../data/scouting-reports";
-import PlayerMeasurements from "./player-measurements";
-import { getSpecialtyMap } from "../utils/get-player-specialties";
 import StarButton from "../components/star";
 import Footer from "../components/footer";
 
 export default function PlayerProfile() {
   const { name } = useParams();
   const decodedName = decodeURIComponent(name || "");
-  const player = bio.find((p) => p.name === decodedName);
-  const [starred, setStarred] = useState<Set<number>>(() => {
+  const player = players.find((p) => p.name === decodedName);
+  const [starred, setStarred] = useState<Set<string>>(() => {
     const stored = localStorage.getItem("starredPlayers");
     return stored ? new Set(JSON.parse(stored)) : new Set();
   });
 
-  function toggleStar(playerId: number) {
+  function toggleStar(playerName: string) {
     setStarred((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(playerId)) {
-        newSet.delete(playerId);
+      if (newSet.has(playerName)) {
+        newSet.delete(playerName);
       } else {
-        newSet.add(playerId);
+        newSet.add(playerName);
       }
       localStorage.setItem("starredPlayers", JSON.stringify([...newSet]));
       return newSet;
@@ -43,31 +35,6 @@ export default function PlayerProfile() {
   }
 
   const [reports, setReports] = useState(initialReports);
-  const [seasonStatType, setSeasonStatType] = useState<"basic" | "advanced">(
-    "basic"
-  );
-
-  const [view, setView] = useState<"season" | "game" | "measurements">(
-    "season"
-  );
-  function calculateAge(birthDateStr: string): number {
-    const birthDate = new Date(birthDateStr);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  }
-  const specialtyMap = useMemo(() => getSpecialtyMap(bio), []);
-  const playerSpecialty = player ? specialtyMap[player.playerId] : null;
-
-  const seasonStats = useMemo(() => {
-    return player
-      ? seasonLogs.find((s) => s.playerId === player.playerId)
-      : null;
-  }, [player]);
   const [openReportDialog, setOpenReportDialog] = useState(false);
 
   const handleReportSubmit = (data: {
@@ -80,50 +47,15 @@ export default function PlayerProfile() {
     const newReport = {
       scout: data.scoutName,
       reportId: crypto.randomUUID(),
-      playerId: player.playerId,
+      playerId: player.name, // Using name as ID since we don't have playerId
       report: data.notes,
     };
 
     setReports((prev) => [...prev, newReport]);
   };
 
-  const playerGameLogs = useMemo(() => {
-    return player
-      ? game_logs.filter((g) => g.playerId === player.playerId)
-      : [];
-  }, [player]);
-  const { means, stdDevs } = useMemo(() => {
-    const filteredStats = seasonLogs.filter((s) => {
-      const gp = Number(s.GP);
-      return !isNaN(gp) && gp >= 15;
-    });
-
-    const means: Record<string, number> = {};
-    const stdDevs: Record<string, number> = {};
-
-    if (!filteredStats.length) return { means, stdDevs };
-
-    Object.keys(filteredStats[0] || {}).forEach((key) => {
-      if (key === "playerId" || key === "age") return;
-
-      const values = filteredStats
-        .map((s) => s[key as keyof typeof s])
-        .filter((v): v is number => v !== null && typeof v === "number");
-
-      if (!values.length) return;
-
-      const mean = values.reduce((a, b) => a + b, 0) / values.length;
-      means[key] = mean;
-
-      const variance =
-        values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-      stdDevs[key] = Math.sqrt(variance);
-    });
-
-    return { means, stdDevs };
-  }, []);
-
   if (!player) return <div>Player not found</div>;
+  
   return (
     <Box className="min-h-screen bg-[#0C2340] text-white">
       <Header />
@@ -143,10 +75,10 @@ export default function PlayerProfile() {
           <Box className="h-1 w-full bg-gradient-to-r from-[#00A3E0] via-[#00D9FF] to-[#A0AEC0] animate-pulse" />
 
           <Box className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-            {player.photoUrl && (
+            {player.profile_url && (
               <Box
                 component="img"
-                src={player.photoUrl}
+                src={player.profile_url}
                 alt={`${player.name} headshot`}
                 className="w-52 h-52 md:w-72 md:h-72 rounded-2xl object-cover border-4 border-[#00A3E0]/20 shadow-xl"
               />
@@ -178,8 +110,8 @@ export default function PlayerProfile() {
                     + Add Report
                   </button>
                   <StarButton
-                    isStarred={starred.has(player.playerId)}
-                    onToggle={() => toggleStar(player.playerId)}
+                    isStarred={starred.has(player.name)}
+                    onToggle={() => toggleStar(player.name)}
                   />
                 </Box>
 
@@ -192,16 +124,8 @@ export default function PlayerProfile() {
               </Box>
 
               <Typography variant="h6" className="text-[#A0AEC0]">
-                {player.currentTeam} • {player.league}
+                {player.team} • {player.conference}
               </Typography>
-              {playerSpecialty && playerSpecialty !== "All" && (
-                <Typography
-                  variant="body2"
-                  className="mt-1 text-[#00B140] font-semibold"
-                >
-                  Specialty: {playerSpecialty}
-                </Typography>
-              )}
 
               <Box className="grid grid-cols-2 md:grid-cols-3 gap-4 text-white">
                 <div>
@@ -209,7 +133,7 @@ export default function PlayerProfile() {
                     Height
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {Math.floor(player.height / 12)}'{player.height % 12}"
+                    {player.height}
                   </Typography>
                 </div>
                 <div>
@@ -217,15 +141,15 @@ export default function PlayerProfile() {
                     Weight
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {player.weight} lbs
+                    {player.weight}
                   </Typography>
                 </div>
                 <div>
                   <Typography variant="body2" className="text-[#A0AEC0]">
-                    Nationality
+                    Position
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {player.nationality}
+                    {player.position}
                   </Typography>
                 </div>
                 <div>
@@ -233,16 +157,23 @@ export default function PlayerProfile() {
                     Hometown
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {player.homeTown}
-                    {player.homeState ? `, ${player.homeState}` : ""}
+                    {player.hometown}
                   </Typography>
                 </div>
                 <div>
                   <Typography variant="body2" className="text-[#A0AEC0]">
-                    Age
+                    Class Year
                   </Typography>
                   <Typography className="text-[#00A3E0] font-medium">
-                    {calculateAge(player.birthDate)} years
+                    {player.class_year}
+                  </Typography>
+                </div>
+                <div>
+                  <Typography variant="body2" className="text-[#A0AEC0]">
+                    High School
+                  </Typography>
+                  <Typography className="text-[#00A3E0] font-medium">
+                    {player.high_school}
                   </Typography>
                 </div>
               </Box>
@@ -250,99 +181,13 @@ export default function PlayerProfile() {
           </Box>
         </Paper>
 
-        <Box className="mb-6">
-          <ToggleButtonGroup
-            value={view}
-            exclusive
-            onChange={(_, val) => val && setView(val)}
-            className="rounded-xl shadow-xl border border-[#CBD5E1] bg-[#F8FAFC]"
-          >
-            <ToggleButton
-              value="season"
-              className={`px-6 py-2 font-semibold transition-all duration-200 border border-[#CBD5E1] ${
-                view === "season"
-                  ? "bg-white text-[#0C2340]"
-                  : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
-              }`}
-            >
-              Season Stats
-            </ToggleButton>
-            <ToggleButton
-              value="game"
-              className={`px-6 py-2 font-semibold transition-all duration-200 border border-[#CBD5E1] ${
-                view === "game"
-                  ? "bg-white text-[#0C2340]"
-                  : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
-              }`}
-            >
-              Game Log
-            </ToggleButton>
-            <ToggleButton
-              value="measurements"
-              className={`px-6 py-2 font-semibold transition-all duration-200 border border-[#CBD5E1] ${
-                view === "measurements"
-                  ? "bg-white text-[#0C2340]"
-                  : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
-              }`}
-            >
-              Measurements
-            </ToggleButton>
-          </ToggleButtonGroup>
-          {view === "season" && (
-            <Box className="mt-4 mb-6">
-              <ToggleButtonGroup
-                value={seasonStatType}
-                exclusive
-                onChange={(_, val) => val && setSeasonStatType(val)}
-                className="rounded-xl shadow border border-[#CBD5E1] bg-[#F8FAFC]"
-              >
-                <ToggleButton
-                  value="basic"
-                  className={`px-4 py-1 font-semibold text-sm border border-[#CBD5E1] ${
-                    seasonStatType === "basic"
-                      ? "bg-white text-[#0C2340]"
-                      : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
-                  }`}
-                >
-                  Basic Stats
-                </ToggleButton>
-                <ToggleButton
-                  value="advanced"
-                  className={`px-4 py-1 font-semibold text-sm border border-[#CBD5E1] ${
-                    seasonStatType === "advanced"
-                      ? "bg-white text-[#0C2340]"
-                      : "bg-[#F1F5F9] text-[#0C2340] hover:bg-white"
-                  }`}
-                >
-                  Advanced Stats
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-          )}
-        </Box>
-
-        <Box className="bg-[#1D2D50] text-white rounded-xl shadow-lg p-6">
-          {view === "season" && seasonStats && (
-            <PlayerSeasonStatsTable
-              stats={seasonLogs.filter((s) => s.playerId === player.playerId)}
-              means={means}
-              stdDevs={stdDevs}
-              type={seasonStatType}
-            />
-          )}
-          {view === "game" && <PlayerGameLogTable gameLogs={playerGameLogs} />}
-          {view === "measurements" && (
-            <PlayerMeasurements playerId={player.playerId} />
-          )}
-        </Box>
-
         <Box className="mt-10 space-y-4">
           <Typography variant="h5" className="text-white font-semibold">
             Scouting Reports
           </Typography>
           {(() => {
             const playerReports = reports.filter(
-              (r) => r.playerId === player.playerId
+              (r) => r.playerId === player.name
             );
 
             if (playerReports.length === 0) {

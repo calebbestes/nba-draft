@@ -2,32 +2,15 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
-  Select,
-  MenuItem,
   Paper,
-  FormControl,
   Autocomplete,
   TextField,
 } from "@mui/material";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { calculatePeerStats } from "../utils/statistics";
-import { bio } from "../data/bio";
-import { game_logs } from "../data/game-logs";
-import { seasonLogs } from "../data/season-logs";
-
-import PlayerMeasurements from "../player-profile/player-measurements";
-import PlayerGameLogTable from "../player-profile/game-log-chart";
-import PlayerSeasonStatsTable from "../player-profile/PlayerSeasonStatsTable";
+import { players } from "../data/players";
 
 import StarButton from "../components/star";
 import Footer from "../components/footer";
-
-const COMPARISON_OPTIONS = [
-  "Measurements",
-  "Advanced Trends",
-  "Season Basic Stats",
-  "Season Advanced Stats",
-];
 
 export default function PlayerComparison() {
   const navigate = useNavigate();
@@ -35,33 +18,24 @@ export default function PlayerComparison() {
 
   const initialIds = useMemo(() => {
     const param = searchParams.get("players");
-    return param ? param.split(",").map(Number) : [];
+    return param ? decodeURIComponent(param).split(",") : [];
   }, [searchParams]);
 
-  const [selectedPlayers, setSelectedPlayers] = useState<number[]>(initialIds);
-  const [comparisonMode, setComparisonMode] = useState(COMPARISON_OPTIONS[1]);
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>(initialIds);
 
-  const players = useMemo(
-    () => bio.map((p) => ({ label: p.name, id: p.playerId })),
+  const playerOptions = useMemo(
+    () => players.map((p) => ({ label: p.name, id: p.name })),
     []
   );
 
-  const comparisonStats = useMemo(
-    () => seasonLogs.filter((s) => selectedPlayers.includes(s.playerId)),
-    [selectedPlayers]
-  );
-  const { means: peerMeans, stdDevs: peerStdDevs } = useMemo(
-    () => calculatePeerStats(comparisonStats),
-    [comparisonStats]
-  );
-  const handlePlayerSelect = (playerId: number | null) => {
-    if (!playerId) return;
+  const handlePlayerSelect = (playerName: string | null) => {
+    if (!playerName) return;
     setSelectedPlayers((prev) =>
-      prev.includes(playerId)
-        ? prev.filter((id) => id !== playerId)
+      prev.includes(playerName)
+        ? prev.filter((name) => name !== playerName)
         : prev.length >= 6
-          ? [...prev.slice(1), playerId]
-          : [...prev, playerId]
+          ? [...prev.slice(1), playerName]
+          : [...prev, playerName]
     );
   };
 
@@ -111,14 +85,14 @@ export default function PlayerComparison() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 gap-6 mb-6">
           {/* Player Selector */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
             <Typography variant="h6" className="text-white mb-4">
               Add Players (max 6)
             </Typography>
             <Autocomplete
-              options={players}
+              options={playerOptions}
               getOptionLabel={(option) => option.label}
               onChange={(_, value) => handlePlayerSelect(value?.id ?? null)}
               renderOption={(props, option) => {
@@ -156,43 +130,18 @@ export default function PlayerComparison() {
               )}
             />
           </div>
-
-          {/* Comparison Mode Selector */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6">
-            <Typography variant="h6" className="text-white mb-4">
-              Comparison Type
-            </Typography>
-            <FormControl fullWidth>
-              <Select
-                value={comparisonMode}
-                onChange={(e) => setComparisonMode(e.target.value)}
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "white",
-                  "& .MuiSelect-icon": { color: "white" },
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.2)" },
-                }}
-              >
-                {COMPARISON_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option === "Advanced Trends" ? "Game By Game" : option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
         </div>
 
         {/* Player Panels */}
         {selectedPlayers.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-            {selectedPlayers.map((playerId) => {
-              const player = bio.find((p) => p.playerId === playerId);
+            {selectedPlayers.map((playerName) => {
+              const player = players.find((p) => p.name === playerName);
               if (!player) return null;
 
               return (
                 <Paper
-                  key={playerId}
+                  key={playerName}
                   className="bg-white/5 border border-white/10 rounded-xl overflow-hidden"
                 >
                   <div className="p-4 bg-gradient-to-r from-[#1A365D] to-[#0C2340] border-b border-white/10">
@@ -207,48 +156,48 @@ export default function PlayerComparison() {
                         isStarred={true}
                         onToggle={() =>
                           setSelectedPlayers((prev) =>
-                            prev.filter((id) => id !== playerId)
+                            prev.filter((name) => name !== playerName)
                           )
                         }
                       />
                     </div>
                     <Typography variant="body2" className="text-[#A0AEC0] mt-1">
-                      {player.currentTeam} • {player.league}
+                      {player.team} • {player.conference}
                     </Typography>
                   </div>
 
                   <div
                     className="p-4 max-h-[600px] overflow-auto"
                     ref={(el) => {
-                      scrollRefs.current[playerId] = el;
+                      scrollRefs.current[playerName.length] = el; // Simple numeric key
                     }}
                   >
-                    {comparisonMode === "Measurements" && (
-                      <PlayerMeasurements playerId={playerId} />
-                    )}
-                    {comparisonMode === "Advanced Trends" && (
-                      <PlayerGameLogTable
-                        gameLogs={game_logs.filter(
-                          (g) => g.playerId === playerId
-                        )}
-                      />
-                    )}
-                    {(comparisonMode === "Season Basic Stats" ||
-                      comparisonMode === "Season Advanced Stats") && (
-                      <PlayerSeasonStatsTable
-                        stats={seasonLogs.filter(
-                          (s) => s.playerId === playerId
-                        )}
-                        means={peerMeans}
-                        stdDevs={peerStdDevs}
-                        type={
-                          comparisonMode === "Season Advanced Stats"
-                            ? "advanced"
-                            : "basic"
-                        }
-                        compareAgainstClass={false}
-                      />
-                    )}
+                    <div className="space-y-4">
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">Position</Typography>
+                        <Typography className="text-white font-medium">{player.position}</Typography>
+                      </div>
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">Height</Typography>
+                        <Typography className="text-white font-medium">{player.height}</Typography>
+                      </div>
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">Weight</Typography>
+                        <Typography className="text-white font-medium">{player.weight}</Typography>
+                      </div>
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">Class Year</Typography>
+                        <Typography className="text-white font-medium">{player.class_year}</Typography>
+                      </div>
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">Hometown</Typography>
+                        <Typography className="text-white font-medium">{player.hometown}</Typography>
+                      </div>
+                      <div>
+                        <Typography variant="body2" className="text-[#A0AEC0]">High School</Typography>
+                        <Typography className="text-white font-medium">{player.high_school}</Typography>
+                      </div>
+                    </div>
                   </div>
                 </Paper>
               );

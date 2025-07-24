@@ -1,35 +1,18 @@
 import { MenuItem, Select, FormControl } from "@mui/material";
-import { bio } from "../data/bio";
-import { scoutRankings } from "../data/scoutRankings";
+import { players } from "../data/players";
 import { useEffect, useMemo, useState } from "react";
-import { type Specialty } from "../utils/get-player-specialties";
-import { getSpecialtyMap } from "../utils/get-player-specialties";
+import { type Position } from "../utils/get-player-positions";
+import { getPositionMap } from "../utils/get-player-positions";
 import Header from "../components/header";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/footer";
 import PlayerGrid from "./player-grid";
-
-const rankingSources = [
-  "Average Rank",
-  "ESPN Rank",
-  "Sam Vecenie Rank",
-  "Kevin O'Connor Rank",
-  "Kyle Boone Rank",
-  "Gary Parrish Rank",
-];
 
 export default function BigBoard() {
   const [starred, setStarred] = useState<Set<number>>(() => {
     const stored = localStorage.getItem("starredPlayers");
     return stored ? new Set(JSON.parse(stored)) : new Set();
   });
-  const [sortKey, setSortKey] = useState(() => {
-    return localStorage.getItem("sortKey") || "Average Rank";
-  });
-
-  useEffect(() => {
-    localStorage.setItem("sortKey", sortKey);
-  }, [sortKey]);
 
   const [searchQuery, setSearchQuery] = useState(() => {
     return localStorage.getItem("searchQuery") || "";
@@ -38,83 +21,53 @@ export default function BigBoard() {
   useEffect(() => {
     localStorage.setItem("searchQuery", searchQuery);
   }, [searchQuery]);
-  const [specialtyFilter, setSpecialtyFilter] = useState<Specialty>(() => {
-    return (localStorage.getItem("specialtyFilter") as Specialty) || "All";
+  
+  const [positionFilter, setPositionFilter] = useState<Position>(() => {
+    return (localStorage.getItem("positionFilter") as Position) || "All";
   });
 
   useEffect(() => {
-    localStorage.setItem("specialtyFilter", specialtyFilter);
-  }, [specialtyFilter]);
+    localStorage.setItem("positionFilter", positionFilter);
+  }, [positionFilter]);
 
-  function toggleStar(playerId: number) {
+  function toggleStar(playerName: string) {
     setStarred((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(playerId)) {
-        newSet.delete(playerId);
+      if (newSet.has(playerName)) {
+        newSet.delete(playerName);
       } else {
-        newSet.add(playerId);
+        newSet.add(playerName);
       }
       localStorage.setItem("starredPlayers", JSON.stringify([...newSet]));
       return newSet;
     });
   }
 
-  const avgRankMap = useMemo(() => {
-    const playerMeans = bio.map((player) => {
-      const ranking = scoutRankings.find((r) => r.playerId === player.playerId);
-      if (!ranking) return { playerId: player.playerId, mean: Infinity };
-
-      const values = Object.entries(ranking)
-        .filter(([key, val]) => key !== "playerId" && typeof val === "number")
-        .map(([, val]) => val as number);
-
-      const mean = values.length
-        ? values.reduce((a, b) => a + b, 0) / values.length
-        : Infinity;
-      return { playerId: player.playerId, mean };
-    });
-
-    playerMeans.sort((a, b) => a.mean - b.mean);
-
-    const map: Record<number, number> = {};
-    playerMeans.forEach((p, index) => {
-      map[p.playerId] = index + 1;
-    });
-
-    return map;
-  }, []);
-
-  const specialtyMap = useMemo(
-    () => getSpecialtyMap(bio.map((p) => ({ playerId: p.playerId }))),
+  const positionMap = useMemo(
+    () => getPositionMap(players.map((p) => ({ name: p.name, position: p.position }))),
     []
   );
 
   const sortedPlayers = useMemo(() => {
-    return [...bio]
+    return [...players]
       .filter((player) => {
-        const specialty = specialtyMap[player.playerId] ?? "Pure Scorer";
-        const matchesSpecialty =
-          specialtyFilter === "All" ||
-          (specialtyFilter === "Starred"
-            ? starred.has(player.playerId)
-            : specialty === specialtyFilter);
+        const position = positionMap[player.name] ?? "G";
+        const matchesPosition =
+          positionFilter === "All" ||
+          (positionFilter === "Starred"
+            ? starred.has(player.name)
+            : position === positionFilter);
 
         const matchesSearch = player.name
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
 
-        return matchesSpecialty && matchesSearch;
+        return matchesPosition && matchesSearch;
       })
-      .sort((a, b) => {
-        const rankA = getRank(a.playerId, sortKey, avgRankMap);
-        const rankB = getRank(b.playerId, sortKey, avgRankMap);
-        return (rankA ?? Infinity) - (rankB ?? Infinity);
-      });
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [
-    sortKey,
-    avgRankMap,
-    specialtyFilter,
-    specialtyMap,
+    positionFilter,
+    positionMap,
     starred,
     searchQuery,
   ]);
@@ -146,17 +99,17 @@ export default function BigBoard() {
             <FormControl sx={{ width: "100%" }}>
               <div className="grid grid-cols-[60px_1fr] items-center gap-2 h-8">
                 <label
-                  htmlFor="specialty-select"
+                  htmlFor="position-select"
                   className="text-sm font-semibold text-[#B8C4CA]"
                 >
                   Filter:
                 </label>
                 <Select
-                  id="specialty-select"
+                  id="position-select"
                   size="small"
-                  value={specialtyFilter}
+                  value={positionFilter}
                   onChange={(e) =>
-                    setSpecialtyFilter(e.target.value as Specialty)
+                    setPositionFilter(e.target.value as Position)
                   }
                   className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm"
                   sx={{
@@ -181,62 +134,18 @@ export default function BigBoard() {
                   {[
                     "All",
                     "Starred",
-                    "Versatile",
-                    "Stretch Big",
-                    "Three and D",
-                    "Pure Scorer",
-                    "Utility Big",
-                    "Potential",
+                    "G",
+                    "F", 
+                    "C",
                   ].map((type) => (
                     <MenuItem key={type} value={type}>
-                      {type}
+                      {type === "G" ? "Guard" : type === "F" ? "Forward" : type === "C" ? "Center" : type}
                     </MenuItem>
                   ))}
                 </Select>
               </div>
             </FormControl>
 
-            <FormControl sx={{ width: "100%" }}>
-              <div className="grid grid-cols-[60px_1fr] items-center gap-2 h-8">
-                <label
-                  htmlFor="sort-select"
-                  className="text-sm font-semibold text-[#B8C4CA]"
-                >
-                  Sort by:
-                </label>
-                <Select
-                  id="sort-select"
-                  size="small"
-                  value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value)}
-                  className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-[#00538C]"
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    px: 1.25,
-                    py: 0.5,
-                    height: "1.9rem",
-                    minHeight: "unset",
-                    color: "#002B5E",
-                    border: "1px solid #00A3E0", // ✅ consistent border
-                    borderRadius: "0.75rem", // rounded-xl
-                    backgroundColor: "rgba(255,255,255,0.9)",
-                    "& .MuiSelect-icon": {
-                      color: "#00538C",
-                    },
-                    "&:hover": {
-                      borderColor: "#B8C4CA",
-                    },
-                  }}
-                >
-                  {rankingSources.map((source) => (
-                    <MenuItem key={source} value={source}>
-                      {source}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </div>
-            </FormControl>
           </div>
 
           {starred.size > 0 && (
@@ -245,7 +154,7 @@ export default function BigBoard() {
                 disabled={starred.size > 5}
                 onClick={() => {
                   const ids = [...starred].slice(0, 5);
-                  navigate(`/compare?players=${ids.join(",")}`);
+                  navigate(`/compare?players=${encodeURIComponent(ids.join(","))}`);
                 }}
                 className={`px-8 py-3 text-lg font-bold text-white rounded-2xl transition-all duration-300 ease-in-out
                   ${
@@ -265,28 +174,10 @@ export default function BigBoard() {
 
       <PlayerGrid
         sortedPlayers={sortedPlayers}
-        sortKey={sortKey}
         starred={starred}
         toggleStar={toggleStar}
-        avgRankMap={avgRankMap}
       />
       <Footer />
     </div>
   );
-}
-
-function getRank(
-  playerId: number,
-  source: string,
-  avgRankMap?: Record<number, number>
-): number | null {
-  if (source === "Average Rank" && avgRankMap) {
-    return avgRankMap[playerId] ?? null;
-  }
-
-  const ranking = scoutRankings.find((r) => r.playerId === playerId);
-  if (!ranking) return null;
-
-  const value = (ranking as Record<string, number | null>)[source];
-  return typeof value === "number" ? value : null;
 }
